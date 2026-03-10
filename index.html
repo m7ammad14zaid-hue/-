@@ -1,181 +1,186 @@
-فهمت عليك يا T10T! إذاً سنقوم بإلغاء الشعار لجعل الأمر يبدو أكثر غموضاً ورسمية، وسنزيد من مدة "الانتظار" لقتلهم بالتوتر. القاعدة في المقالب هي: كلما زاد وقت الانتظار، زادت قوة الصدمة.
-
-إليك التعديلات الجديدة:
-
-بدون شعار: الشاشة تبدأ بخلفية "تيمز" الداكنة مع نص تقني فقط.
-
-مدة انتظار أطول: سيبقى في "غرفة الانتظار" لفترة أطول مع ظهور رسائل متغيرة مثل "جاري التحقق من الهوية..." لجعل الأمر يبدو حقيقياً 100%.
-
-تسلسل أحداث أبطأ: الانتقال من مرحلة لمرحلة سيكون مدروساً ليعيش الضحية كل لحظة رعب.
-
-الكود المعدل (نسخة T10T الأنيقة):
-HTML
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Microsoft Teams - Connect</title>
+    <title>Microsoft Teams - Live Feed</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1b1a19; font-family: 'Segoe UI', sans-serif; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1b1a19; font-family: 'Segoe UI', Tahoma, sans-serif; color: white; }
         
-        /* مرحلة الانتظار الطويلة */
-        #waiting-room { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            z-index: 1000; color: white; text-align: center; padding: 20px;
-        }
-        
-        .loader-dots { display: flex; gap: 8px; margin-bottom: 20px; }
-        .dot { width: 12px; height: 12px; background: #6264a7; border-radius: 50%; animation: blink 1.4s infinite; }
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-
-        #status-msg { font-size: 1.1rem; font-weight: 500; transition: all 0.5s; color: #f3f2f1; }
-        .sub-text { color: #a19f9d; font-size: 0.85rem; margin-top: 10px; }
-
-        /* شاشة الهكر والمصفوفة */
-        #hacker-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 2000; color: #0f0; font-family: monospace; }
-        .matrix-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3; font-size: 14px; overflow: hidden; white-space: nowrap; line-height: 1.2; }
-        
-        /* واجهة الرعب */
-        .scary-ui { position: relative; z-index: 2001; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-        .btn-view { background: #6264a7; color: white; border: none; padding: 15px 30px; border-radius: 4px; font-weight: bold; cursor: pointer; display: none; margin-top: 20px; }
-
-        /* شاشة النهاية */
-        #final-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 3000; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #0f0; }
-        .vortex { width: 150px; height: 150px; border: 5px solid #0f0; border-top: 5px solid red; border-radius: 50%; animation: spin 0.6s linear infinite; margin-bottom: 20px; }
+        /* 1. غرفة الانتظار */
+        #waiting-room { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; background: #1b1a19; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #6264a7; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
-        #progress-bar { width: 250px; height: 8px; background: #333; border-radius: 5px; overflow: hidden; margin: 15px 0; }
-        #fill { width: 0%; height: 100%; background: #0f0; }
+
+        /* 2. شاشة الهكر (Canvas) */
+        #hacker-stage { display: none; position: fixed; inset: 0; background: black; z-index: 2000; }
+        canvas#matrix-canvas { position: absolute; inset: 0; opacity: 0.5; }
+        .hacker-overlay { position: relative; z-index: 2001; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; font-family: monospace; color: #0f0; }
+
+        /* 3. شاشة الكاميرا المعطلة (رسم) */
+        #camera-stage { display: none; position: fixed; inset: 0; z-index: 3000; background: black; }
+        canvas#noise-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .cam-info { position: absolute; top: 20px; right: 20px; background: rgba(255,0,0,0.7); padding: 5px 15px; border-radius: 5px; font-weight: bold; animation: blink 1s infinite; }
+        .cam-label { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 10px 20px; font-family: monospace; font-size: 0.8rem; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+        /* 4. شاشة النهاية */
+        #final-stage { display: none; position: fixed; inset: 0; z-index: 4000; background: black; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #progress-bar { width: 80%; height: 10px; background: #222; border: 1px solid #0f0; border-radius: 5px; margin: 20px 0; overflow: hidden; }
+        #fill { width: 0%; height: 100%; background: #0f0; box-shadow: 0 0 10px #0f0; }
     </style>
 </head>
-<body onclick="startPrank()">
+<body onclick="startExperience()">
 
     <div id="waiting-room">
-        <div class="loader-dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>
-        <div id="status-msg">جاري التحقق من صلاحيات الدخول...</div>
-        <div class="sub-text">بث كاميرا الصف | مدرسة (T10T Security)</div>
+        <div class="spinner"></div>
+        <h3 id="wait-msg">جاري التحقق من الهوية...</h3>
+        <p style="color: #a19f9d; font-size: 0.8rem;">تيمز - الجلسة المدرسية الآمنة</p>
     </div>
 
     <div id="hacker-stage">
-        <div class="matrix-bg" id="matrix"></div>
-        <div class="scary-ui">
-            <h1 style="margin:0;">[T10T]</h1>
-            <p>SUCCESSFULLY BYPASSED SECURITY</p>
-            <p id="hacker-desc" style="color: white; font-size: 0.9rem;">جاري مزامنة البث مع الكاميرا الاحتياطية...</p>
-            <button id="view-btn" class="btn-view" onclick="triggerFinal()">اضغط لمتابعة البث المباشر (LIVE)</button>
+        <canvas id="matrix-canvas"></canvas>
+        <div class="hacker-overlay">
+            <h1>[T10T] SYSTEM BYPASS</h1>
+            <p id="hacker-logs">> Bypassing MS-Teams Firewall...</p>
         </div>
     </div>
 
-    <div id="final-screen">
-        <div id="pulling-files">
-            <div class="vortex"></div>
-            <h2 class="dots">جاري سحب كافة الملفات</h2>
-            <p style="color:red; font-size: 0.8rem;">Unauthorized Data Extraction Detected!</p>
-        </div>
-        
-        <div id="wipe-data" style="display:none; padding: 20px;">
-            <h1 style="font-size: 5rem; margin:0;">😟</h1>
-            <p>اعتذر.. جاري مسح كافة بيانات الهاتف لضمان عدم ملاحقتي</p>
-            <div id="progress-bar"><div id="fill"></div></div>
-            <h2 id="percent">0%</h2>
-        </div>
+    <div id="camera-stage">
+        <canvas id="noise-canvas"></canvas>
+        <div class="cam-info">LIVE</div>
+        <div class="cam-label">CLASS_ROOM_CAM_04 | CONNECTING...</div>
+    </div>
 
+    <div id="final-stage">
+        <h1 style="font-size: 5rem; margin:0;">💀</h1>
+        <h2 style="color:#0f0;">YOU HAVE BEEN HACKED BY T10T</h2>
+        <div id="progress-bar"><div id="fill"></div></div>
+        <p id="status-text">جاري سحب الصور والبيانات...</p>
         <div id="uncle" style="display:none;">
-            <h1 style="font-size: 5.5rem; color: #0f0; margin:0; text-shadow: 0 0 15px #0f0;">T10T</h1>
-            <h1 style="font-size: 4rem; color: white;">عــــمــــك</h1>
-            <p style="margin-top: 20px; color: #555;">(المزحة بتخلص بعد 5 لمسات)</p>
+            <h1 style="font-size: 5rem; color: #0f0; margin:0;">T10T</h1>
+            <h1 style="font-size: 4rem; color: #0f0;">عــــمــــك</h1>
         </div>
     </div>
 
     <script>
         let isStarted = false;
-        const messages = [
-            "جاري التحقق من صلاحيات الدخول...",
-            "بانتظار موافقة منظم الجلسة...",
-            "تم اكتشاف ثغرة في النظام...",
-            "جاري كسر حماية Microsoft Teams...",
-            "تم الدخول بنجاح عبر بروتوكول T10T..."
-        ];
 
-        function startPrank() {
+        function startExperience() {
             if (isStarted) return;
             isStarted = true;
-            
-            let msgIndex = 0;
-            let msgInterval = setInterval(() => {
-                msgIndex++;
-                if (msgIndex < messages.length) {
-                    document.getElementById('status-msg').innerText = messages[msgIndex];
+
+            // 1. تسلسل رسائل تيمز (تطويل الوقت)
+            const msgs = ["جاري الاتصال بالسيرفر...", "بانتظار موافقة المنظم...", "تأكيد بروتوكول الأمان...", "تم اكتشاف ثغرة دخول (T10T Exploit)..."];
+            let i = 0;
+            let interval = setInterval(() => {
+                if (i < msgs.length) {
+                    document.getElementById('wait-msg').innerText = msgs[i];
+                    i++;
                 } else {
-                    clearInterval(msgInterval);
-                    enterHackerStage();
+                    clearInterval(interval);
+                    showMatrix();
                 }
-            }, 3000); // كل رسالة تأخذ 3 ثواني (الإجمالي 12-15 ثانية انتظار)
+            }, 4000); // 4 ثواني لكل رسالة = 16 ثانية انتظار
         }
 
-        function enterHackerStage() {
+        // 2. شاشة المصفوفة (Matrix)
+        function showMatrix() {
             document.getElementById('waiting-room').style.display = 'none';
             document.getElementById('hacker-stage').style.display = 'block';
-            fillMatrix();
+            initMatrix();
             
-            setTimeout(() => {
-                document.getElementById('view-btn').style.display = 'block';
-                document.getElementById('hacker-desc').innerText = "البث جاهز.. اضغط للمشاهدة";
-            }, 4000);
+            const logs = ["> Injecting Payload...", "> Accessing Video Stream...", "> Decrypting Teams Token...", "> Success! Opening Feed..."];
+            let j = 0;
+            let logInt = setInterval(() => {
+                if (j < logs.length) {
+                    document.getElementById('hacker-logs').innerText = logs[j];
+                    j++;
+                } else {
+                    clearInterval(logInt);
+                    showCamera();
+                }
+            }, 2500);
         }
 
-        function fillMatrix() {
-            const matrix = document.getElementById('matrix');
-            let content = "";
-            for(let i=0; i<50; i++) {
-                content += "101010111100010101010101111000101010<br>";
-            }
-            matrix.innerHTML = content;
-        }
-
-        function triggerFinal() {
+        // 3. شاشة الكاميرا المعطلة (رسم يدوي)
+        function showCamera() {
             document.getElementById('hacker-stage').style.display = 'none';
-            document.getElementById('final-screen').style.display = 'flex';
+            document.getElementById('camera-stage').style.display = 'block';
+            const noiseCanvas = document.getElementById('noise-canvas');
+            const nctx = noiseCanvas.getContext('2d');
             
+            function renderNoise() {
+                const w = noiseCanvas.width = window.innerWidth;
+                const h = noiseCanvas.height = window.innerHeight;
+                const idata = nctx.createImageData(w, h);
+                const buffer = new Uint32Array(idata.data.buffer);
+                for (let k = 0; k < buffer.length; k++) {
+                    buffer[k] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff;
+                }
+                nctx.putImageData(idata, 0, 0);
+                if (document.getElementById('camera-stage').style.display === 'block') {
+                    requestAnimationFrame(renderNoise);
+                }
+            }
+            renderNoise();
+
+            // البقاء في الكاميرا لمدة 20 ثانية!
             setTimeout(() => {
-                document.getElementById('pulling-files').style.display = 'none';
-                document.getElementById('wipe-data').style.display = 'block';
-                startLoading();
-            }, 5000);
+                showFinal();
+            }, 20000);
         }
 
-        let p = 0;
-        function startLoading() {
-            let inv = setInterval(() => {
+        // 4. المرحلة النهائية
+        function showFinal() {
+            document.getElementById('camera-stage').style.display = 'none';
+            document.getElementById('final-stage').style.display = 'flex';
+            let p = 0;
+            let pInt = setInterval(() => {
                 p++;
-                document.getElementById('fill').style.width = p + "%";
-                document.getElementById('percent').innerText = p + "%";
-                
+                document.getElementById('fill').style.width = p + '%';
                 if(p >= 100) {
-                    clearInterval(inv);
-                    document.getElementById('wipe-data').style.display = 'none';
+                    clearInterval(pInt);
+                    document.getElementById('status-text').style.display = 'none';
                     document.getElementById('uncle').style.display = 'block';
                 }
-            }, 150);
+            }, 100);
         }
 
-        let taps = 0;
+        // كود الـ Matrix
+        function initMatrix() {
+            const c = document.getElementById('matrix-canvas');
+            const ctx = c.getContext('2d');
+            c.width = window.innerWidth;
+            c.height = window.innerHeight;
+            const letters = "10101010T10T".split("");
+            const fontSize = 16;
+            const columns = c.width / fontSize;
+            const drops = [];
+            for (let x = 0; x < columns; x++) drops[x] = 1;
+
+            function draw() {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+                ctx.fillRect(0, 0, c.width, c.height);
+                ctx.fillStyle = "#0f0";
+                ctx.font = fontSize + "px monospace";
+                for (let i = 0; i < drops.length; i++) {
+                    const text = letters[Math.floor(Math.random() * letters.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    if (drops[i] * fontSize > c.height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
+                }
+            }
+            setInterval(draw, 33);
+        }
+
+        // لمس 5 مرات للنهاية
+        let clicks = 0;
         document.body.addEventListener('click', () => {
-            if(document.getElementById('uncle').style.display === "block") {
-                taps++;
-                if(taps >= 5) {
-                    document.getElementById('uncle').innerHTML = `
-                        <h2 style="color:#0f0;">مقلب من T10T.. لا تخاف يا بطل 😂</h2>
-                        <button onclick="location.reload()" style="padding:10px 20px; background:#0f0; border:none; border-radius:5px; font-weight:bold;">خروج</button>
-                    `;
+            if(document.getElementById('uncle').style.display === 'block') {
+                clicks++;
+                if(clicks >= 5) {
+                    document.getElementById('final-stage').innerHTML = "<h1>هههههه تعيش وتوكل غيرها 😂</h1><p>مقلب من T10T</p><button onclick='location.reload()'>رجوع</button>";
                 }
             }
         });
