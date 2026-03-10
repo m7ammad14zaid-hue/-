@@ -5,29 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Microsoft Teams - Live Feed</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1b1a19; font-family: 'Segoe UI', Tahoma, sans-serif; color: white; }
+        /* جعل الصفحة تغطي الشاشة بالكامل ومنع التمرير */
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            overflow: hidden; background: #1b1a19; 
+            font-family: 'Segoe UI', Tahoma, sans-serif; color: white;
+            cursor: pointer;
+        }
         
-        /* 1. غرفة الانتظار */
+        /* مرحلة 1: الانتظار */
         #waiting-room { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; background: #1b1a19; }
         .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #6264a7; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* 2. شاشة الهكر (Canvas) */
+        /* مرحلة 2: Matrix */
         #hacker-stage { display: none; position: fixed; inset: 0; background: black; z-index: 2000; }
-        canvas#matrix-canvas { position: absolute; inset: 0; opacity: 0.5; }
-        .hacker-overlay { position: relative; z-index: 2001; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; font-family: monospace; color: #0f0; }
+        canvas#matrix-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .hacker-overlay { position: relative; z-index: 2001; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; font-family: monospace; color: #0f0; background: rgba(0,0,0,0.4); }
 
-        /* 3. شاشة الكاميرا المعطلة (رسم) */
+        /* مرحلة 3: الكاميرا المعطلة */
         #camera-stage { display: none; position: fixed; inset: 0; z-index: 3000; background: black; }
         canvas#noise-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-        .cam-info { position: absolute; top: 20px; right: 20px; background: rgba(255,0,0,0.7); padding: 5px 15px; border-radius: 5px; font-weight: bold; animation: blink 1s infinite; }
-        .cam-label { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 10px 20px; font-family: monospace; font-size: 0.8rem; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        .cam-info { position: absolute; top: 30px; right: 30px; background: rgba(255,0,0,0.8); padding: 5px 15px; border-radius: 5px; font-weight: bold; animation: blink 1s infinite; font-family: sans-serif; }
+        .cam-label { position: absolute; bottom: 40px; width: 100%; text-align: center; background: rgba(0,0,0,0.6); padding: 10px 0; font-family: monospace; font-size: 0.9rem; letter-spacing: 2px; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* 4. شاشة النهاية */
+        /* المرحلة النهائية */
         #final-stage { display: none; position: fixed; inset: 0; z-index: 4000; background: black; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        #progress-bar { width: 80%; height: 10px; background: #222; border: 1px solid #0f0; border-radius: 5px; margin: 20px 0; overflow: hidden; }
-        #fill { width: 0%; height: 100%; background: #0f0; box-shadow: 0 0 10px #0f0; }
+        #progress-bar { width: 80%; height: 12px; background: #222; border: 1px solid #0f0; border-radius: 6px; margin: 25px 0; overflow: hidden; }
+        #fill { width: 0%; height: 100%; background: #0f0; box-shadow: 0 0 15px #0f0; }
     </style>
 </head>
 <body onclick="startExperience()">
@@ -35,42 +41,52 @@
     <div id="waiting-room">
         <div class="spinner"></div>
         <h3 id="wait-msg">جاري التحقق من الهوية...</h3>
-        <p style="color: #a19f9d; font-size: 0.8rem;">تيمز - الجلسة المدرسية الآمنة</p>
+        <p style="color: #a19f9d; font-size: 0.8rem;">اضغط للشروع في الاتصال</p>
     </div>
 
     <div id="hacker-stage">
         <canvas id="matrix-canvas"></canvas>
         <div class="hacker-overlay">
-            <h1>[T10T] SYSTEM BYPASS</h1>
+            <h1 style="letter-spacing: 5px;">[T10T] SYSTEM BYPASS</h1>
             <p id="hacker-logs">> Bypassing MS-Teams Firewall...</p>
         </div>
     </div>
 
     <div id="camera-stage">
         <canvas id="noise-canvas"></canvas>
-        <div class="cam-info">LIVE</div>
-        <div class="cam-label">CLASS_ROOM_CAM_04 | CONNECTING...</div>
+        <div class="cam-info">🔴 LIVE</div>
+        <div class="cam-label">CLASS_ROOM_CAM_04 | ENCRYPTED_STREAM</div>
     </div>
 
     <div id="final-stage">
-        <h1 style="font-size: 5rem; margin:0;">💀</h1>
-        <h2 style="color:#0f0;">YOU HAVE BEEN HACKED BY T10T</h2>
+        <h1 style="font-size: 6rem; margin:0;">💀</h1>
+        <h2 style="color:#0f0; text-shadow: 0 0 10px #0f0;">YOU HAVE BEEN HACKED BY T10T</h2>
         <div id="progress-bar"><div id="fill"></div></div>
-        <p id="status-text">جاري سحب الصور والبيانات...</p>
+        <p id="status-text" style="font-family: monospace;">EXTRACTING PRIVATE_DATA...</p>
         <div id="uncle" style="display:none;">
-            <h1 style="font-size: 5rem; color: #0f0; margin:0;">T10T</h1>
-            <h1 style="font-size: 4rem; color: #0f0;">عــــمــــك</h1>
+            <h1 style="font-size: 6rem; color: #0f0; margin:0; text-shadow: 0 0 20px #0f0;">T10T</h1>
+            <h1 style="font-size: 4rem; color: white;">عــــمــــك</h1>
         </div>
     </div>
 
     <script>
         let isStarted = false;
 
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            }
+        }
+
         function startExperience() {
             if (isStarted) return;
             isStarted = true;
 
-            // 1. تسلسل رسائل تيمز (تطويل الوقت)
+            // تفعيل الشاشة الكاملة فور اللمس
+            toggleFullScreen();
+
             const msgs = ["جاري الاتصال بالسيرفر...", "بانتظار موافقة المنظم...", "تأكيد بروتوكول الأمان...", "تم اكتشاف ثغرة دخول (T10T Exploit)..."];
             let i = 0;
             let interval = setInterval(() => {
@@ -81,10 +97,9 @@
                     clearInterval(interval);
                     showMatrix();
                 }
-            }, 4000); // 4 ثواني لكل رسالة = 16 ثانية انتظار
+            }, 3500); 
         }
 
-        // 2. شاشة المصفوفة (Matrix)
         function showMatrix() {
             document.getElementById('waiting-room').style.display = 'none';
             document.getElementById('hacker-stage').style.display = 'block';
@@ -103,7 +118,6 @@
             }, 2500);
         }
 
-        // 3. شاشة الكاميرا المعطلة (رسم يدوي)
         function showCamera() {
             document.getElementById('hacker-stage').style.display = 'none';
             document.getElementById('camera-stage').style.display = 'block';
@@ -125,13 +139,9 @@
             }
             renderNoise();
 
-            // البقاء في الكاميرا لمدة 20 ثانية!
-            setTimeout(() => {
-                showFinal();
-            }, 20000);
+            setTimeout(() => { showFinal(); }, 20000); // 20 ثانية تشويش
         }
 
-        // 4. المرحلة النهائية
         function showFinal() {
             document.getElementById('camera-stage').style.display = 'none';
             document.getElementById('final-stage').style.display = 'flex';
@@ -144,17 +154,16 @@
                     document.getElementById('status-text').style.display = 'none';
                     document.getElementById('uncle').style.display = 'block';
                 }
-            }, 100);
+            }, 120);
         }
 
-        // كود الـ Matrix
         function initMatrix() {
             const c = document.getElementById('matrix-canvas');
             const ctx = c.getContext('2d');
             c.width = window.innerWidth;
             c.height = window.innerHeight;
             const letters = "10101010T10T".split("");
-            const fontSize = 16;
+            const fontSize = 18;
             const columns = c.width / fontSize;
             const drops = [];
             for (let x = 0; x < columns; x++) drops[x] = 1;
@@ -174,13 +183,12 @@
             setInterval(draw, 33);
         }
 
-        // لمس 5 مرات للنهاية
         let clicks = 0;
         document.body.addEventListener('click', () => {
             if(document.getElementById('uncle').style.display === 'block') {
                 clicks++;
                 if(clicks >= 5) {
-                    document.getElementById('final-stage').innerHTML = "<h1>هههههه تعيش وتوكل غيرها 😂</h1><p>مقلب من T10T</p><button onclick='location.reload()'>رجوع</button>";
+                    document.getElementById('final-stage').innerHTML = "<h1>😂 تعيش وتوكل غيرها يا بطل</h1><p>T10T كان هنا</p><button onclick='location.reload()' style='background:#0f0; border:none; padding:10px 20px; border-radius:5px; font-weight:bold;'>رجوع</button>";
                 }
             }
         });
