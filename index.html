@@ -1,173 +1,184 @@
+فهمت عليك يا T10T! إذاً سنقوم بإلغاء الشعار لجعل الأمر يبدو أكثر غموضاً ورسمية، وسنزيد من مدة "الانتظار" لقتلهم بالتوتر. القاعدة في المقالب هي: كلما زاد وقت الانتظار، زادت قوة الصدمة.
+
+إليك التعديلات الجديدة:
+
+بدون شعار: الشاشة تبدأ بخلفية "تيمز" الداكنة مع نص تقني فقط.
+
+مدة انتظار أطول: سيبقى في "غرفة الانتظار" لفترة أطول مع ظهور رسائل متغيرة مثل "جاري التحقق من الهوية..." لجعل الأمر يبدو حقيقياً 100%.
+
+تسلسل أحداث أبطأ: الانتقال من مرحلة لمرحلة سيكون مدروساً ليعيش الضحية كل لحظة رعب.
+
+الكود المعدل (نسخة T10T الأنيقة):
+HTML
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Microsoft Teams - Live Session</title>
+    <title>Microsoft Teams - Connect</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #11100f; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1b1a19; font-family: 'Segoe UI', sans-serif; }
         
-        /* شاشة انتظار تيمز الحقيقية */
-        #waiting-room { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1b1a19; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: white; }
-        .teams-icon { width: 80px; margin-bottom: 20px; }
-        .pulse { width: 20px; height: 20px; background: #6264a7; border-radius: 50%; animation: pulse 1.5s infinite; margin-top: 20px; }
-        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.7; } }
+        /* مرحلة الانتظار الطويلة */
+        #waiting-room { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            z-index: 1000; color: white; text-align: center; padding: 20px;
+        }
+        
+        .loader-dots { display: flex; gap: 8px; margin-bottom: 20px; }
+        .dot { width: 12px; height: 12px; background: #6264a7; border-radius: 50%; animation: blink 1.4s infinite; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
-        /* شاشة المصفوفة (Matrix) */
-        #matrix-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 900; }
-        canvas { display: block; opacity: 0.4; }
-        .overlay-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; }
-        
-        /* كاميرا مشوشة */
-        #cam-glitch { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://media.giphy.com/media/oEI9uWUicv05i/giphy.gif') center/cover; z-index: 1100; opacity: 0.2; }
-        
-        /* إشعارات وهمية */
-        .notif { position: fixed; top: -100px; left: 5%; width: 90%; background: rgba(30,30,30,0.9); border: 1px solid #444; border-radius: 10px; padding: 10px; display: flex; align-items: center; color: white; font-size: 0.8rem; z-index: 2000; transition: top 0.5s; }
-        .notif-icon { color: #f00; margin-left: 10px; }
+        #status-msg { font-size: 1.1rem; font-weight: 500; transition: all 0.5s; color: #f3f2f1; }
+        .sub-text { color: #a19f9d; font-size: 0.85rem; margin-top: 10px; }
 
-        /* المرحلة النهائية */
-        #final-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 3000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .white-flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 4000; display: none; }
+        /* شاشة الهكر والمصفوفة */
+        #hacker-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 2000; color: #0f0; font-family: monospace; }
+        .matrix-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3; font-size: 14px; overflow: hidden; white-space: nowrap; line-height: 1.2; }
+        
+        /* واجهة الرعب */
+        .scary-ui { position: relative; z-index: 2001; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .btn-view { background: #6264a7; color: white; border: none; padding: 15px 30px; border-radius: 4px; font-weight: bold; cursor: pointer; display: none; margin-top: 20px; }
+
+        /* شاشة النهاية */
+        #final-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 3000; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #0f0; }
+        .vortex { width: 150px; height: 150px; border: 5px solid #0f0; border-top: 5px solid red; border-radius: 50%; animation: spin 0.6s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        #progress-bar { width: 250px; height: 8px; background: #333; border-radius: 5px; overflow: hidden; margin: 15px 0; }
+        #fill { width: 0%; height: 100%; background: #0f0; }
     </style>
 </head>
-<body onclick="startExperience()">
+<body onclick="startPrank()">
 
     <div id="waiting-room">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg" class="teams-icon">
-        <h3 style="margin-bottom: 5px;">بانتظار سماح المنظم بالدخول...</h3>
-        <p style="color: #a19f9d; font-size: 0.9rem;">بث كاميرا الصف: غرفة 4</p>
-        <div class="pulse"></div>
-        <button id="entry-btn" style="margin-top: 40px; background: #6264a7; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">دخول مباشر (بصلاحية مبرمج)</button>
+        <div class="loader-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        <div id="status-msg">جاري التحقق من صلاحيات الدخول...</div>
+        <div class="sub-text">بث كاميرا الصف | مدرسة (T10T Security)</div>
     </div>
 
-    <div id="notification" class="notif">
-        <span class="notif-icon">⚠️</span>
-        <span id="notif-msg">تم اختراق ملفات النظام...</span>
-    </div>
-
-    <div id="matrix-stage">
-        <canvas id="canvas"></canvas>
-        <div class="overlay-text">
-            <h1 style="color: #0f0; font-size: 2rem; text-shadow: 0 0 10px #0f0;">T10T HACK_SYSTEM v2.0</h1>
-            <p style="color: white;">Bypassing Teams Firewall...</p>
+    <div id="hacker-stage">
+        <div class="matrix-bg" id="matrix"></div>
+        <div class="scary-ui">
+            <h1 style="margin:0;">[T10T]</h1>
+            <p>SUCCESSFULLY BYPASSED SECURITY</p>
+            <p id="hacker-desc" style="color: white; font-size: 0.9rem;">جاري مزامنة البث مع الكاميرا الاحتياطية...</p>
+            <button id="view-btn" class="btn-view" onclick="triggerFinal()">اضغط لمتابعة البث المباشر (LIVE)</button>
         </div>
     </div>
 
-    <div id="cam-glitch"></div>
-
-    <div id="final-stage">
-        <h1 style="color: #0f0; font-size: 5rem; margin: 0;">T10T</h1>
-        <h2 style="color: white;">سـيـد الـنـظـام</h2>
-        <div id="progress-box" style="width: 80%; height: 10px; background: #222; margin: 20px; border-radius: 5px;">
-            <div id="bar" style="width: 0%; height: 100%; background: #0f0;"></div>
+    <div id="final-screen">
+        <div id="pulling-files">
+            <div class="vortex"></div>
+            <h2 class="dots">جاري سحب كافة الملفات</h2>
+            <p style="color:red; font-size: 0.8rem;">Unauthorized Data Extraction Detected!</p>
         </div>
-        <p id="status-end" style="color: #aaa;">جاري مسح الصور والرسائل...</p>
-    </div>
+        
+        <div id="wipe-data" style="display:none; padding: 20px;">
+            <h1 style="font-size: 5rem; margin:0;">😟</h1>
+            <p>اعتذر.. جاري مسح كافة بيانات الهاتف لضمان عدم ملاحقتي</p>
+            <div id="progress-bar"><div id="fill"></div></div>
+            <h2 id="percent">0%</h2>
+        </div>
 
-    <div id="flash" class="white-flash"></div>
+        <div id="uncle" style="display:none;">
+            <h1 style="font-size: 5.5rem; color: #0f0; margin:0; text-shadow: 0 0 15px #0f0;">T10T</h1>
+            <h1 style="font-size: 4rem; color: white;">عــــمــــك</h1>
+            <p style="margin-top: 20px; color: #555;">(المزحة بتخلص بعد 5 لمسات)</p>
+        </div>
+    </div>
 
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let width, height, columns;
-        const fontSize = 16;
+        let isStarted = false;
+        const messages = [
+            "جاري التحقق من صلاحيات الدخول...",
+            "بانتظار موافقة منظم الجلسة...",
+            "تم اكتشاف ثغرة في النظام...",
+            "جاري كسر حماية Microsoft Teams...",
+            "تم الدخول بنجاح عبر بروتوكول T10T..."
+        ];
 
-        function initMatrix() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            columns = Math.floor(width / fontSize);
-        }
-        
-        const drops = [];
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, width, height);
-            ctx.fillStyle = '#0f0';
-            ctx.font = fontSize + 'px monospace';
-            for (let i = 0; i < drops.length; i++) {
-                const text = String.fromCharCode(Math.random() * 128);
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            }
-        }
-
-        let step = 0;
-        function startExperience() {
-            if (step !== 0) return;
-            step = 1;
+        function startPrank() {
+            if (isStarted) return;
+            isStarted = true;
             
-            // صوت وش (صناعي)
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.type = 'sawtooth';
-            oscillator.frequency.setValueAtTime(100, audioCtx.currentTime);
-            gainNode.gain.setValueAtTime(0.01, audioCtx.currentTime);
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.start();
+            let msgIndex = 0;
+            let msgInterval = setInterval(() => {
+                msgIndex++;
+                if (msgIndex < messages.length) {
+                    document.getElementById('status-msg').innerText = messages[msgIndex];
+                } else {
+                    clearInterval(msgInterval);
+                    enterHackerStage();
+                }
+            }, 3000); // كل رسالة تأخذ 3 ثواني (الإجمالي 12-15 ثانية انتظار)
+        }
 
-            document.getElementById('entry-btn').innerText = "جاري كسر التشفير...";
+        function enterHackerStage() {
+            document.getElementById('waiting-room').style.display = 'none';
+            document.getElementById('hacker-stage').style.display = 'block';
+            fillMatrix();
             
             setTimeout(() => {
-                document.getElementById('waiting-room').style.display = 'none';
-                document.getElementById('matrix-stage').style.display = 'block';
-                initMatrix();
-                for (let i = 0; i < columns; i++) drops[i] = 1;
-                setInterval(drawMatrix, 33);
-                
-                // سلسلة الرعب
-                setTimeout(() => { showNotif("تم الوصول للكاميرا الأمامية..."); }, 2000);
-                setTimeout(() => { 
-                    document.getElementById('cam-glitch').style.display = 'block';
-                    gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime); 
-                }, 4000);
-                setTimeout(() => { 
-                    document.getElementById('final-stage').style.display = 'flex';
-                    startFinalLoading(oscillator, audioCtx);
-                }, 7000);
-            }, 2000);
+                document.getElementById('view-btn').style.display = 'block';
+                document.getElementById('hacker-desc').innerText = "البث جاهز.. اضغط للمشاهدة";
+            }, 4000);
         }
 
-        function showNotif(msg) {
-            const n = document.getElementById('notification');
-            document.getElementById('notif-msg').innerText = msg;
-            n.style.top = '20px';
-            setTimeout(() => { n.style.top = '-100px'; }, 3000);
+        function fillMatrix() {
+            const matrix = document.getElementById('matrix');
+            let content = "";
+            for(let i=0; i<50; i++) {
+                content += "101010111100010101010101111000101010<br>";
+            }
+            matrix.innerHTML = content;
         }
 
-        function startFinalLoading(osc, actx) {
-            let p = 0;
-            const int = setInterval(() => {
+        function triggerFinal() {
+            document.getElementById('hacker-stage').style.display = 'none';
+            document.getElementById('final-screen').style.display = 'flex';
+            
+            setTimeout(() => {
+                document.getElementById('pulling-files').style.display = 'none';
+                document.getElementById('wipe-data').style.display = 'block';
+                startLoading();
+            }, 5000);
+        }
+
+        let p = 0;
+        function startLoading() {
+            let inv = setInterval(() => {
                 p++;
-                document.getElementById('bar').style.width = p + '%';
-                if (p === 70) {
-                    document.body.style.animation = "shake 0.1s infinite";
-                    if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                document.getElementById('fill').style.width = p + "%";
+                document.getElementById('percent').innerText = p + "%";
+                
+                if(p >= 100) {
+                    clearInterval(inv);
+                    document.getElementById('wipe-data').style.display = 'none';
+                    document.getElementById('uncle').style.display = 'block';
                 }
-                if (p >= 100) {
-                    clearInterval(int);
-                    document.getElementById('flash').style.display = 'block';
-                    osc.stop();
-                    setTimeout(() => {
-                        document.getElementById('flash').style.display = 'none';
-                        renderEnd();
-                    }, 500);
-                }
-            }, 100);
+            }, 150);
         }
 
-        function renderEnd() {
-            document.getElementById('final-stage').innerHTML = `
-                <h1 style="color:#0f0; font-size:4rem;">T10T عـــمـــك</h1>
-                <p style="color:white;">تـعـيـش وتـوكـل غـيـرهـا يا بطل 😂</p>
-                <button onclick="location.reload()" style="background:#0f0; border:none; padding:10px 20px; border-radius:5px; font-weight:bold;">طمن قلبك (خروج)</button>
-            `;
-        }
+        let taps = 0;
+        document.body.addEventListener('click', () => {
+            if(document.getElementById('uncle').style.display === "block") {
+                taps++;
+                if(taps >= 5) {
+                    document.getElementById('uncle').innerHTML = `
+                        <h2 style="color:#0f0;">مقلب من T10T.. لا تخاف يا بطل 😂</h2>
+                        <button onclick="location.reload()" style="padding:10px 20px; background:#0f0; border:none; border-radius:5px; font-weight:bold;">خروج</button>
+                    `;
+                }
+            }
+        });
     </script>
-    <style>
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, 1px); } }
-    </style>
 </body>
 </html>
