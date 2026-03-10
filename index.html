@@ -2,182 +2,172 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
-    <title>Microsoft Teams - Live Feed</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Microsoft Teams - Live Session</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; transition: background 1s; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #11100f; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        /* مرحلة 1: تيمز - بطيئة وبسيطة */
-        #stage1 { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: white; z-index: 200; transition: opacity 1s; }
-        .teams-logo { width: 90px; margin-bottom: 20px; animation: breathe 3s ease-in-out infinite; }
-        @keyframes breathe { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        .loading-text { color: #6264a7; font-weight: 500; font-size: 0.9rem; }
+        /* شاشة انتظار تيمز الحقيقية */
+        #waiting-room { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1b1a19; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: white; }
+        .teams-icon { width: 80px; margin-bottom: 20px; }
+        .pulse { width: 20px; height: 20px; background: #6264a7; border-radius: 50%; animation: pulse 1.5s infinite; margin-top: 20px; }
+        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.7; } }
 
-        /* المرحلة 2: مصفوفة T10T الخضراء */
-        #matrix-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; color: #0f0; font-family: monospace; z-index: 100; overflow: hidden; }
-        .matrix-column { position: absolute; top: -100px; font-size: 20px; writing-mode: vertical-rl; text-orientation: upright; animation: fall 3s linear infinite; opacity: 0.4; }
-        @keyframes fall { to { transform: translateY(110vh); } }
-
-        .hacker-ui { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 105; background: rgba(0,0,0,0.8); }
-        .btn-blue { background: #0078d4; color: white; border: none; padding: 18px 35px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-weight: 600; text-decoration: none; display: inline-block; }
-
-        /* المرحلة 3: الكاميرا المشوشة (برمجياً) */
-        #camera-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 300; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        /* تأثير تشويش الكاميرا البرمجي */
-        .static-noise { width: 100%; height: 100%; background: repeating-radial-gradient(#1a1a1a, #000 1px, #222 2px); opacity: 0.5; animation: noise 0.15s infinite; }
-        @keyframes noise { 0%, 100% { transform: translate(1px,1px); } 50% { transform: translate(-1px, -1px); } }
-        .cam-text { position: absolute; color: white; font-family: monospace; background: rgba(0,0,0,0.8); padding: 8px 15px; border-radius: 5px; }
-
-        /* المرحلة 4: الرعب النهائي والدوامة */
-        #terror-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 400; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #0f0; }
-        /* الدوامة الملونة البرمجية */
-        .vortex { width: 220px; height: 220px; border: 12px double #0f0; border-radius: 50%; border-top-color: #f00; border-bottom-color: #f00; animation: spinVortex 0.5s linear infinite; margin: 25px; box-shadow: 0 0 30px #0f0; }
-        @keyframes spinVortex { to { transform: rotate(360deg); } }
-
-        /* تأثير الاهتزاز والإضاءة الحمراء */
-        .shake-bg { animation: dangerLight 0.15s infinite; }
-        @keyframes dangerLight { 0% { background: #000; } 50% { background: #500; } }
-
-        #progress-container { width: 250px; height: 15px; background: #222; border: 1px solid #0f0; border-radius: 10px; margin-top: 10px; }
-        #progress-bar { width: 0%; height: 100%; background: #0f0; border-radius: 10px; transition: width 0.1s; box-shadow: 0 0 10px #0f0; }
+        /* شاشة المصفوفة (Matrix) */
+        #matrix-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 900; }
+        canvas { display: block; opacity: 0.4; }
+        .overlay-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; }
         
-        .dots::after { content: ''; animation: dots 1.5s steps(4, end) infinite; }
-        @keyframes dots { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80% { content: '...'; } }
+        /* كاميرا مشوشة */
+        #cam-glitch { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://media.giphy.com/media/oEI9uWUicv05i/giphy.gif') center/cover; z-index: 1100; opacity: 0.2; }
+        
+        /* إشعارات وهمية */
+        .notif { position: fixed; top: -100px; left: 5%; width: 90%; background: rgba(30,30,30,0.9); border: 1px solid #444; border-radius: 10px; padding: 10px; display: flex; align-items: center; color: white; font-size: 0.8rem; z-index: 2000; transition: top 0.5s; }
+        .notif-icon { color: #f00; margin-left: 10px; }
+
+        /* المرحلة النهائية */
+        #final-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 3000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .white-flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 4000; display: none; }
     </style>
 </head>
-<body onclick="handleTouch()">
+<body onclick="startExperience()">
 
-    <div id="stage1">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg" class="teams-logo">
-        <div class="loading-text">جاري الاتصال بقاعدة بيانات المدرسة</div>
+    <div id="waiting-room">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg" class="teams-icon">
+        <h3 style="margin-bottom: 5px;">بانتظار سماح المنظم بالدخول...</h3>
+        <p style="color: #a19f9d; font-size: 0.9rem;">بث كاميرا الصف: غرفة 4</p>
+        <div class="pulse"></div>
+        <button id="entry-btn" style="margin-top: 40px; background: #6264a7; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">دخول مباشر (بصلاحية مبرمج)</button>
     </div>
 
-    <div id="matrix-bg">
-        <div class="matrix-column" style="left:10%">101010101111000011</div>
-        <div class="matrix-column" style="left:30%">000011111010101010</div>
-        <div class="matrix-column" style="left:70%">110010101010111100</div>
-        <div class="matrix-column" style="left:90%">010101111000010101</div>
-        <div class="hacker-ui">
-            <h1 style="font-size: 1.6rem; color: #0f0;">😎 T10T Hacked Camera 💀</h1>
-            <p style="font-size: 1rem; color: #aaa;">تم اختراق بث كاميرا الصف بنجاح</p>
-            <button class="btn-blue" onclick="startPrankSequence()">اضغط لمتابعة البث المباشر (LIVE) ههههه</button>
-        </div>
+    <div id="notification" class="notif">
+        <span class="notif-icon">⚠️</span>
+        <span id="notif-msg">تم اختراق ملفات النظام...</span>
     </div>
 
-    <div id="camera-stage">
-        <div class="static-noise"></div>
-        <div class="cam-text">
-            <h3 style="margin: 0;">🔴 LIVE: ROOM_402</h3>
-            <p style="font-size: 0.8rem;">[ERROR 404: CONNECTION LOST]</p>
+    <div id="matrix-stage">
+        <canvas id="canvas"></canvas>
+        <div class="overlay-text">
+            <h1 style="color: #0f0; font-size: 2rem; text-shadow: 0 0 10px #0f0;">T10T HACK_SYSTEM v2.0</h1>
+            <p style="color: white;">Bypassing Teams Firewall...</p>
         </div>
     </div>
 
-    <div id="terror-stage">
-        <div id="terror-text-face">
-            <h1 style="font-size: 6rem; margin: 0; text-shadow: 0 0 20px #f00;">💀</h1>
-            <h2 style="color: #0f0; margin-top: 10px;">YOU HAVE BEEN HACKED BY T10T</h2>
-            <p style="color: #aaa;">لقد قام T10T باختراق جهازك بالكامل</p>
-        </div>
+    <div id="cam-glitch"></div>
 
-        <div id="pulling" style="display:none;">
-            <div class="vortex"></div>
-            <h2 id="log-text" class="dots" style="color:#0f0;">جاري سحب كافة الملفات</h2>
+    <div id="final-stage">
+        <h1 style="color: #0f0; font-size: 5rem; margin: 0;">T10T</h1>
+        <h2 style="color: white;">سـيـد الـنـظـام</h2>
+        <div id="progress-box" style="width: 80%; height: 10px; background: #222; margin: 20px; border-radius: 5px;">
+            <div id="bar" style="width: 0%; height: 100%; background: #0f0;"></div>
         </div>
-
-        <div id="final-warning" style="display:none; padding: 20px;">
-            <h1 style="font-size: 4rem; margin:0;">😟</h1>
-            <p style="color:white; font-size: 0.9rem;">اعتذر.. جاري الآن مسح كافة بيانات الهاتف</p>
-            <div id="progress-container"><div id="progress-bar"></div></div>
-            <h2 id="percent" style="color:#0f0; margin-top:5px;">0%</h2>
-        </div>
-
-        <div id="uncle" style="display:none; text-align: center;">
-            <h1 style="font-size: 5rem; color: #0f0; margin:0; text-shadow: 0 0 20px #0f0;">T10T</h1>
-            <h1 style="font-size: 4rem; color: #0f0; font-weight: bold; margin:0;">عــــمــــك</h1>
-        </div>
+        <p id="status-end" style="color: #aaa;">جاري مسح الصور والرسائل...</p>
     </div>
+
+    <div id="flash" class="white-flash"></div>
 
     <script>
-        // بداية تيمز: البقاء 3 ثواني لزيادة التوتر
-        setTimeout(() => {
-            document.getElementById('stage1').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('stage1').style.display = 'none';
-                document.getElementById('matrix-bg').style.display = 'block';
-            }, 1000);
-        }, 3000);
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, columns;
+        const fontSize = 16;
 
-        function startPrankSequence() {
-            // تفعيل الشاشة الكاملة (يعمل على الأندرويد والكروم)
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.webkitRequestFullscreen) { // للآيفون (سيعمل بشكل بصري فقط)
-                document.documentElement.webkitRequestFullscreen();
+        function initMatrix() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            columns = Math.floor(width / fontSize);
+        }
+        
+        const drops = [];
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = String.fromCharCode(Math.random() * 128);
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
             }
+        }
+
+        let step = 0;
+        function startExperience() {
+            if (step !== 0) return;
+            step = 1;
             
-            // تبديل الشاشات
-            document.getElementById('matrix-bg').style.display = 'none';
-            document.getElementById('camera-stage').style.display = 'flex';
+            // صوت وش (صناعي)
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(100, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+
+            document.getElementById('entry-btn').innerText = "جاري كسر التشفير...";
             
-            // البقاء في شاشة الكاميرا المشوشة لـ 3 ثواني
             setTimeout(() => {
-                document.getElementById('camera-stage').style.display = 'none';
-                document.getElementById('terror-stage').style.display = 'flex';
+                document.getElementById('waiting-room').style.display = 'none';
+                document.getElementById('matrix-stage').style.display = 'block';
+                initMatrix();
+                for (let i = 0; i < columns; i++) drops[i] = 1;
+                setInterval(drawMatrix, 33);
                 
-                // مرحلة الهكر (4 ثواني)
-                setTimeout(() => {
-                    document.getElementById('terror-text-face').style.display = 'none';
-                    document.getElementById('pulling').style.display = 'block';
-                    
-                    // مرحلة سحب الملفات (4 ثواني)
-                    setTimeout(() => {
-                        document.getElementById('pulling').style.display = 'none';
-                        document.getElementById('final-warning').style.display = 'block';
-                        runLoading();
-                    }, 4000);
+                // سلسلة الرعب
+                setTimeout(() => { showNotif("تم الوصول للكاميرا الأمامية..."); }, 2000);
+                setTimeout(() => { 
+                    document.getElementById('cam-glitch').style.display = 'block';
+                    gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime); 
                 }, 4000);
-            }, 3000);
+                setTimeout(() => { 
+                    document.getElementById('final-stage').style.display = 'flex';
+                    startFinalLoading(oscillator, audioCtx);
+                }, 7000);
+            }, 2000);
         }
 
-        let prg = 0;
-        function runLoading() {
-            let inv = setInterval(() => {
-                prg++;
-                document.getElementById('progress-bar').style.width = prg + "%";
-                document.getElementById('percent').innerText = prg + "%";
-                
-                // تأثير الاهتزاز والوميض عند الاقتراب من النهاية
-                if (prg >= 70) {
-                    document.getElementById('terror-stage').classList.add('shake-bg');
-                    // اهتزاز حقيقي للجهاز (يعمل على أندرويد)
-                    if(navigator.vibrate) navigator.vibrate(100);
-                }
-                
-                if (prg >= 100) {
-                    clearInterval(inv);
-                    document.getElementById('final-warning').style.display = 'none';
-                    document.getElementById('terror-stage').classList.remove('shake-bg');
-                    document.getElementById('uncle').style.display = 'block';
-                }
-            }, 180); // تبطئة التحميل لزيادة الرعب
+        function showNotif(msg) {
+            const n = document.getElementById('notification');
+            document.getElementById('notif-msg').innerText = msg;
+            n.style.top = '20px';
+            setTimeout(() => { n.style.top = '-100px'; }, 3000);
         }
 
-        // لمس الشاشة 5 مرات للنهاية
-        let clicks = 0;
-        function handleTouch() {
-            if (document.getElementById('uncle').style.display === "block") {
-                clicks++;
-                if (clicks >= 5) {
-                    document.getElementById('uncle').innerHTML = `
-                        <h2 style="color:#0f0;">هههههه هذه مزحة من T10T.. تعيش وتوكل غيرها 😂</h2>
-                        <button onclick="location.reload()" style="padding:15px 25px; background:#0f0; border:none; border-radius:10px; font-weight:bold; color:black;">رجوع طمن حالك</button>
-                    `;
+        function startFinalLoading(osc, actx) {
+            let p = 0;
+            const int = setInterval(() => {
+                p++;
+                document.getElementById('bar').style.width = p + '%';
+                if (p === 70) {
+                    document.body.style.animation = "shake 0.1s infinite";
+                    if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 }
-            }
+                if (p >= 100) {
+                    clearInterval(int);
+                    document.getElementById('flash').style.display = 'block';
+                    osc.stop();
+                    setTimeout(() => {
+                        document.getElementById('flash').style.display = 'none';
+                        renderEnd();
+                    }, 500);
+                }
+            }, 100);
+        }
+
+        function renderEnd() {
+            document.getElementById('final-stage').innerHTML = `
+                <h1 style="color:#0f0; font-size:4rem;">T10T عـــمـــك</h1>
+                <p style="color:white;">تـعـيـش وتـوكـل غـيـرهـا يا بطل 😂</p>
+                <button onclick="location.reload()" style="background:#0f0; border:none; padding:10px 20px; border-radius:5px; font-weight:bold;">طمن قلبك (خروج)</button>
+            `;
         }
     </script>
+    <style>
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, 1px); } }
+    </style>
 </body>
 </html>
