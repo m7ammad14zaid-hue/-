@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>System Breach</title>
+    <style>
+        body { 
+            background-color: #101010; 
+            color: #0f0; 
+            font-family: 'Courier New', monospace; 
+            margin: 0; 
+            overflow: hidden; 
+        }
+        /* تصميم الرسالة المركزية */
+        #main-msg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+            background: rgba(16, 16, 16, 0.9);
+            padding: 20px;
+            border: 2px solid #0f0;
+        }
+        /* أسطر الشريط الإخباري */
+        .marquee {
+            white-space: nowrap;
+            position: absolute;
+            width: 100%;
+            font-size: 18px;
+            opacity: 0.4;
+            animation: move linear infinite;
+        }
+        @keyframes move {
+            from { transform: translateX(100%); }
+            to { transform: translateX(-100%); }
+        }
+        .exit-btn { color: #ff3333; cursor: pointer; font-weight: bold; font-size: 22px; }
+    </style>
+</head>
+<body onclick="startPrank()">
+
+    <div id="main-msg">
+        <h1>💀 تم اختراق النظام 💀</h1>
+        <p>جاري سحب الملفات والصور...</p>
+        <p style="font-size: 12px; color: #888;">(اضغط في أي مكان للإلغاء)</p>
+    </div>
+
+    <div id="background-layers"></div>
+
+    <script>
+        function startPrank() {
+            // دخول وضع ملء الشاشة
+            let elem = document.documentElement;
+            if (elem.requestFullscreen) elem.requestFullscreen();
+
+            // تغيير الرسالة المركزية
+            const msg = document.getElementById('main-msg');
+            msg.innerHTML = "<h1>❌ فشل الإلغاء! ❌</h1><p>الحساب في خطر.. ابحث عن كود الطوارئ (1)</p>";
+
+            // إنشاء الأسطر المتحركة
+            const container = document.getElementById('background-layers');
+            container.innerHTML = ''; // تنظيف الشاشة
+            for (let i = 0; i < 25; i++) {
+                let div = document.createElement('div');
+                div.className = 'marquee';
+                div.style.top = (i * 4) + '%';
+                div.style.animationDuration = (Math.random() * 4 + 2) + 's';
+                
+                let codeText = "DOWNLOADING_SYSTEM_FILES_IP_ADDRESS_FOUND_ENCRYPTING_DATA_";
+                if (i === 12) {
+                    div.innerHTML = codeText + ' <span class="exit-btn" onclick="stopPrank(event)">1</span> ' + codeText;
+                } else {
+                    div.innerHTML = codeText + codeText + codeText;
+                }
+                container.appendChild(div);
+            }
+        }
+
+        function stopPrank(e) {
+            e.stopPropagation();
+            alert("ههههههه مقلب! تعيش وتأكل غيرها 😂");
+            if (document.exitFullscreen) document.exitFullscreen();
+            location.reload(); // إعادة الصفحة لحالتها الطبيعية
+        }
+    </script>
+</body>
+</html>
