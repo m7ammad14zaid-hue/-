@@ -2,90 +2,106 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Microsoft Teams - Security</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+    <title>Microsoft Teams - Live Feed</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: white; font-family: sans-serif; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; transition: background 1s; }
         
-        /* مرحلة 1: تيمز - بطيئة ومنظمة */
-        #stage1 { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: white; z-index: 200; transition: opacity 1s; }
-        .teams-logo { width: 100px; margin-bottom: 20px; }
-        .loading-text { color: #6264a7; font-weight: bold; font-size: 0.9rem; }
+        /* مرحلة 1: تيمز - بطيئة وبسيطة */
+        #stage1 { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: white; z-index: 200; transition: opacity 1s; }
+        .teams-logo { width: 90px; margin-bottom: 20px; animation: breathe 3s ease-in-out infinite; }
+        @keyframes breathe { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        .loading-text { color: #6264a7; font-weight: 500; font-size: 0.9rem; }
 
-        /* المرحلة 2: مصفوفة T10T */
+        /* المرحلة 2: مصفوفة T10T الخضراء */
         #matrix-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; color: #0f0; font-family: monospace; z-index: 100; overflow: hidden; }
-        .matrix-column { position: absolute; top: -100px; font-size: 20px; writing-mode: vertical-rl; text-orientation: upright; animation: fall 3s linear infinite; opacity: 0.5; }
+        .matrix-column { position: absolute; top: -100px; font-size: 20px; writing-mode: vertical-rl; text-orientation: upright; animation: fall 3s linear infinite; opacity: 0.4; }
         @keyframes fall { to { transform: translateY(110vh); } }
 
-        .hacker-ui { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 105; background: rgba(0,0,0,0.7); }
-        .btn-blue { background: #0078d4; color: white; border: none; padding: 18px 35px; border-radius: 8px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-weight: bold; }
+        .hacker-ui { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 105; background: rgba(0,0,0,0.8); }
+        .btn-blue { background: #0078d4; color: white; border: none; padding: 18px 35px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-weight: 600; text-decoration: none; display: inline-block; }
 
         /* المرحلة 3: الكاميرا المشوشة (برمجياً) */
-        #camera-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 300; flex-direction: column; justify-content: center; align-items: center; }
-        .static-noise { width: 100%; height: 100%; background: repeating-radial-gradient(#222, #000 2px, #333 4px); opacity: 0.4; animation: noise 0.1s infinite; }
-        @keyframes noise { 0% { transform: translate(1px,1px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(0,0); } }
+        #camera-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 300; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        /* تأثير تشويش الكاميرا البرمجي */
+        .static-noise { width: 100%; height: 100%; background: repeating-radial-gradient(#1a1a1a, #000 1px, #222 2px); opacity: 0.5; animation: noise 0.15s infinite; }
+        @keyframes noise { 0%, 100% { transform: translate(1px,1px); } 50% { transform: translate(-1px, -1px); } }
+        .cam-text { position: absolute; color: white; font-family: monospace; background: rgba(0,0,0,0.8); padding: 8px 15px; border-radius: 5px; }
 
-        /* المرحلة 4: الهكر والدوامة */
+        /* المرحلة 4: الرعب النهائي والدوامة */
         #terror-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 400; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #0f0; }
-        .vortex { width: 250px; height: 250px; border: 10px double #0f0; border-radius: 50%; border-top-color: #f00; border-bottom-color: #f00; animation: spin 0.5s linear infinite; margin: 20px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* الدوامة الملونة البرمجية */
+        .vortex { width: 220px; height: 220px; border: 12px double #0f0; border-radius: 50%; border-top-color: #f00; border-bottom-color: #f00; animation: spinVortex 0.5s linear infinite; margin: 25px; box-shadow: 0 0 30px #0f0; }
+        @keyframes spinVortex { to { transform: rotate(360deg); } }
 
-        /* الاهتزاز والتحذير */
-        .shake-bg { animation: danger 0.15s infinite; }
-        @keyframes danger { 0% { background: #000; } 50% { background: #600; } }
+        /* تأثير الاهتزاز والإضاءة الحمراء */
+        .shake-bg { animation: dangerLight 0.15s infinite; }
+        @keyframes dangerLight { 0% { background: #000; } 50% { background: #500; } }
 
-        #progress-bar { width: 0%; height: 15px; background: #0f0; border-radius: 10px; transition: width 0.1s; }
+        #progress-container { width: 250px; height: 15px; background: #222; border: 1px solid #0f0; border-radius: 10px; margin-top: 10px; }
+        #progress-bar { width: 0%; height: 100%; background: #0f0; border-radius: 10px; transition: width 0.1s; box-shadow: 0 0 10px #0f0; }
+        
+        .dots::after { content: ''; animation: dots 1.5s steps(4, end) infinite; }
+        @keyframes dots { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80% { content: '...'; } }
     </style>
 </head>
 <body onclick="handleTouch()">
 
     <div id="stage1">
         <img src="https://upload.wikimedia.org/wikipedia/commons/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg" class="teams-logo">
-        <div class="loading-text">جاري الاتصال بقاعدة بيانات المدرسة...</div>
+        <div class="loading-text">جاري الاتصال بقاعدة بيانات المدرسة</div>
     </div>
 
     <div id="matrix-bg">
+        <div class="matrix-column" style="left:10%">101010101111000011</div>
+        <div class="matrix-column" style="left:30%">000011111010101010</div>
+        <div class="matrix-column" style="left:70%">110010101010111100</div>
+        <div class="matrix-column" style="left:90%">010101111000010101</div>
         <div class="hacker-ui">
-            <h1 style="font-size: 1.8rem;">😎 T10T Hacked Camera 💀</h1>
-            <p style="font-size: 1.1rem;">تم اختراق بث كاميرا الصف بنجاح</p>
-            <button class="btn-blue" onclick="startPrankSequence()">اضغط لمتابعة البث المباشر هههههه</button>
+            <h1 style="font-size: 1.6rem; color: #0f0;">😎 T10T Hacked Camera 💀</h1>
+            <p style="font-size: 1rem; color: #aaa;">تم اختراق بث كاميرا الصف بنجاح</p>
+            <button class="btn-blue" onclick="startPrankSequence()">اضغط لمتابعة البث المباشر (LIVE) ههههه</button>
         </div>
     </div>
 
     <div id="camera-stage">
         <div class="static-noise"></div>
-        <h1 style="position: absolute; color: white; font-family: monospace; background: rgba(0,0,0,0.8); padding: 10px;">🔴 LIVE: ROOM_402 [ERROR 404]</h1>
+        <div class="cam-text">
+            <h3 style="margin: 0;">🔴 LIVE: ROOM_402</h3>
+            <p style="font-size: 0.8rem;">[ERROR 404: CONNECTION LOST]</p>
+        </div>
     </div>
 
     <div id="terror-stage">
-        <div id="hacker-face">
-            <h1 style="font-size: 5rem; margin: 0;">💀</h1>
-            <h2>YOU HAVE BEEN HACKED BY T10T</h2>
-            <p>لقد قام T10T باختراق جهازك بالكامل</p>
+        <div id="terror-text-face">
+            <h1 style="font-size: 6rem; margin: 0; text-shadow: 0 0 20px #f00;">💀</h1>
+            <h2 style="color: #0f0; margin-top: 10px;">YOU HAVE BEEN HACKED BY T10T</h2>
+            <p style="color: #aaa;">لقد قام T10T باختراق جهازك بالكامل</p>
         </div>
 
         <div id="pulling" style="display:none;">
             <div class="vortex"></div>
-            <h2 id="log-text">جاري سحب الصور...</h2>
+            <h2 id="log-text" class="dots" style="color:#0f0;">جاري سحب كافة الملفات</h2>
         </div>
 
         <div id="final-warning" style="display:none; padding: 20px;">
-            <h1 style="font-size: 3rem;">😟</h1>
-            <p>اعتذر.. جاري مسح كافة بيانات الهاتف</p>
-            <div style="width: 250px; background: #222; border: 1px solid #0f0; border-radius: 10px;">
-                <div id="progress-bar"></div>
-            </div>
-            <h2 id="percent">0%</h2>
+            <h1 style="font-size: 4rem; margin:0;">😟</h1>
+            <p style="color:white; font-size: 0.9rem;">اعتذر.. جاري الآن مسح كافة بيانات الهاتف</p>
+            <div id="progress-container"><div id="progress-bar"></div></div>
+            <h2 id="percent" style="color:#0f0; margin-top:5px;">0%</h2>
         </div>
 
-        <div id="uncle" style="display:none;">
-            <h1 style="font-size: 5rem; color: #0f0; margin:0;">T10T</h1>
-            <h1 style="font-size: 4rem; color: #0f0;">عــــمــــك</h1>
+        <div id="uncle" style="display:none; text-align: center;">
+            <h1 style="font-size: 5rem; color: #0f0; margin:0; text-shadow: 0 0 20px #0f0;">T10T</h1>
+            <h1 style="font-size: 4rem; color: #0f0; font-weight: bold; margin:0;">عــــمــــك</h1>
         </div>
     </div>
 
     <script>
-        // بداية تيمز
+        // بداية تيمز: البقاء 3 ثواني لزيادة التوتر
         setTimeout(() => {
             document.getElementById('stage1').style.opacity = '0';
             setTimeout(() => {
@@ -95,17 +111,25 @@
         }, 3000);
 
         function startPrankSequence() {
+            // تفعيل الشاشة الكاملة (يعمل على الأندرويد والكروم)
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) { // للآيفون (سيعمل بشكل بصري فقط)
+                document.documentElement.webkitRequestFullscreen();
+            }
+            
+            // تبديل الشاشات
             document.getElementById('matrix-bg').style.display = 'none';
             document.getElementById('camera-stage').style.display = 'flex';
             
-            // البقاء في شاشة الكاميرا لـ 3 ثواني لزيادة التوتر
+            // البقاء في شاشة الكاميرا المشوشة لـ 3 ثواني
             setTimeout(() => {
                 document.getElementById('camera-stage').style.display = 'none';
                 document.getElementById('terror-stage').style.display = 'flex';
                 
                 // مرحلة الهكر (4 ثواني)
                 setTimeout(() => {
-                    document.getElementById('hacker-face').style.display = 'none';
+                    document.getElementById('terror-text-face').style.display = 'none';
                     document.getElementById('pulling').style.display = 'block';
                     
                     // مرحلة سحب الملفات (4 ثواني)
@@ -125,8 +149,10 @@
                 document.getElementById('progress-bar').style.width = prg + "%";
                 document.getElementById('percent').innerText = prg + "%";
                 
+                // تأثير الاهتزاز والوميض عند الاقتراب من النهاية
                 if (prg >= 70) {
                     document.getElementById('terror-stage').classList.add('shake-bg');
+                    // اهتزاز حقيقي للجهاز (يعمل على أندرويد)
                     if(navigator.vibrate) navigator.vibrate(100);
                 }
                 
@@ -136,17 +162,18 @@
                     document.getElementById('terror-stage').classList.remove('shake-bg');
                     document.getElementById('uncle').style.display = 'block';
                 }
-            }, 150); // تبطئة التحميل ليكون أرعب
+            }, 180); // تبطئة التحميل لزيادة الرعب
         }
 
+        // لمس الشاشة 5 مرات للنهاية
         let clicks = 0;
         function handleTouch() {
             if (document.getElementById('uncle').style.display === "block") {
                 clicks++;
                 if (clicks >= 5) {
                     document.getElementById('uncle').innerHTML = `
-                        <h2 style="color:#0f0;">مزحة من T10T.. تعيش وتوكل غيرها 😂</h2>
-                        <button onclick="location.reload()" style="padding:15px; background:#0f0; border:none; border-radius:5px;">رجوع</button>
+                        <h2 style="color:#0f0;">هههههه هذه مزحة من T10T.. تعيش وتوكل غيرها 😂</h2>
+                        <button onclick="location.reload()" style="padding:15px 25px; background:#0f0; border:none; border-radius:10px; font-weight:bold; color:black;">رجوع طمن حالك</button>
                     `;
                 }
             }
