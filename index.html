@@ -1,12 +1,156 @@
-<div id="ai-chat-stage" style="display:none; position:fixed; inset:0; background:#0b0b0b; z-index:1500; flex-direction:column; padding:20px; font-family:sans-serif;">
-    <div id="chat-container" style="flex-grow:1; display:flex; flex-direction:column; justify-content:flex-end;">
-        <div id="ai-message" style="background:#202123; color:white; padding:15px; border-radius:15px 15px 15px 0; margin-bottom:20px; max-width:85%; line-height:1.6; border:1px solid #333; display:none;">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Microsoft Teams - Live Feed</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1b1a19; font-family: 'Segoe UI', Tahoma, sans-serif; color: white; }
+        
+        /* 1. غرفة الانتظار (الدائرة اللي بتلف) */
+        #waiting-room { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; background: #1b1a19; }
+        .spinner { width: 45px; height: 45px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #6264a7; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 2. شاشة دردشة الـ AI */
+        #ai-chat-stage { display: none; position: fixed; inset: 0; background: #0b0b0b; z-index: 1500; flex-direction: column; padding: 25px; box-sizing: border-box; }
+        .chat-bubble { background: #202123; color: white; padding: 18px; border-radius: 15px 15px 15px 0; margin-bottom: 25px; max-width: 90%; line-height: 1.6; border: 1px solid #333; font-size: 1.1rem; align-self: flex-start; }
+        #input-area { display: none; gap: 10px; margin-top: auto; padding-bottom: 20px; }
+        #user-name { flex-grow: 1; padding: 15px; border-radius: 10px; border: 1px solid #444; background: #1a1a1a; color: white; font-size: 1rem; outline: none; }
+        .send-btn { background: #0078d4; color: white; border: none; padding: 0 25px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+        /* 3. شاشة المصفوفة (Matrix) */
+        #hacker-stage { display: none; position: fixed; inset: 0; background: black; z-index: 2000; }
+        canvas#matrix-canvas { position: absolute; inset: 0; opacity: 0.6; }
+
+        /* 4. شاشة التلفزيون المعطل (التشويش) */
+        #camera-stage { display: none; position: fixed; inset: 0; z-index: 3000; background: black; }
+        canvas#noise-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .cam-label { position: absolute; top: 30px; right: 30px; background: rgba(255,0,0,0.8); padding: 5px 15px; border-radius: 5px; font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* 5. النهاية */
+        #final-stage { display: none; position: fixed; inset: 0; z-index: 4000; background: black; flex-direction: column; align-items: center; justify-content: center; }
+        #uncle { text-align: center; }
+    </style>
+</head>
+<body onclick="startExperience()">
+
+    <div id="waiting-room">
+        <div class="spinner"></div>
+        <h3>جاري التحقق من الهوية...</h3>
+        <p style="color: #a19f9d; font-size: 0.8rem;">بانتظار موافقة منظم الجلسة</p>
+    </div>
+
+    <div id="ai-chat-stage">
+        <div id="chat-content" style="display:flex; flex-direction:column; height:100%;">
+            <div id="typing" style="color:#6264a7; margin-bottom:10px;">الذكاء الاصطناعي يكتب الآن...</div>
+            <div id="ai-msg" class="chat-bubble" style="display:none;"></div>
+            <div id="input-area">
+                <input type="text" id="user-name" placeholder="اكتب اسمك هنا...">
+                <button class="send-btn" onclick="moveToHacker()">إرسال</button>
             </div>
-        <div id="typing-indicator" style="color:#aaa; font-size:0.8rem; margin-bottom:10px; display:none;">الذكاء الاصطناعي يكتب الآن...</div>
+        </div>
     </div>
-    
-    <div id="input-area" style="display:none; gap:10px; padding-bottom:20px;">
-        <input type="text" id="user-name" placeholder="اكتب اسمك هنا..." style="flex-grow:1; padding:12px; border-radius:8px; border:1px solid #444; background:#1a1a1a; color:white; outline:none;">
-        <button onclick="proceedToHacking()" style="background:#0078d4; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold;">إرسال</button>
+
+    <div id="hacker-stage">
+        <canvas id="matrix-canvas"></canvas>
     </div>
-</div>
+
+    <div id="camera-stage">
+        <canvas id="noise-canvas"></canvas>
+        <div class="cam-label">🔴 LIVE</div>
+    </div>
+
+    <div id="final-stage">
+        <div id="uncle">
+            <h1 style="font-size: 5rem; color: #0f0; margin:0;">T10T</h1>
+            <h1 style="font-size: 4rem; color: white;">عــــمــــك</h1>
+        </div>
+    </div>
+
+    <script>
+        let isStarted = false;
+
+        function startExperience() {
+            if (isStarted) return;
+            isStarted = true;
+
+            // تفعيل الشاشة الكاملة
+            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+
+            // 7 ثوانٍ شاشة الانتظار
+            setTimeout(() => {
+                document.getElementById('waiting-room').style.display = 'none';
+                document.getElementById('ai-chat-stage').style.display = 'flex';
+                
+                // تأثير الـ AI
+                setTimeout(() => {
+                    document.getElementById('typing').style.display = 'none';
+                    const msg = "مرحبا، أنا هكر الذكاء الاصطناعي الذي أمرني سيدي محمد بتهكير كاميرا الصف. اكتب اسمك لإثبات هويتك 😁";
+                    const bubble = document.getElementById('ai-msg');
+                    bubble.innerText = msg;
+                    bubble.style.display = 'block';
+                    document.getElementById('input-area').style.display = 'flex';
+                }, 2000);
+            }, 7000);
+        }
+
+        function moveToHacker() {
+            const name = document.getElementById('user-name').value;
+            if(!name) return;
+            
+            document.getElementById('ai-chat-stage').style.display = 'none';
+            document.getElementById('hacker-stage').style.display = 'block';
+            initMatrix();
+
+            // 10 ثوانٍ هكر ثم الكاميرا
+            setTimeout(() => {
+                document.getElementById('hacker-stage').style.display = 'none';
+                document.getElementById('camera-stage').style.display = 'block';
+                startNoise();
+                
+                // 20 ثانية تشويش ثم النهاية
+                setTimeout(() => {
+                    document.getElementById('camera-stage').style.display = 'none';
+                    document.getElementById('final-stage').style.display = 'flex';
+                }, 20000);
+            }, 10000);
+        }
+
+        function initMatrix() {
+            const c = document.getElementById('matrix-canvas');
+            const ctx = c.getContext('2d');
+            c.width = window.innerWidth; c.height = window.innerHeight;
+            const letters = "0101T10T".split("");
+            const fontSize = 16;
+            const columns = c.width / fontSize;
+            const drops = Array(Math.floor(columns)).fill(1);
+            setInterval(() => {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, c.width, c.height);
+                ctx.fillStyle = "#0f0"; ctx.font = fontSize + "px monospace";
+                drops.forEach((y, x) => {
+                    const text = letters[Math.floor(Math.random() * letters.length)];
+                    ctx.fillText(text, x * fontSize, y * fontSize);
+                    if (y * fontSize > c.height && Math.random() > 0.975) drops[x] = 0;
+                    drops[x]++;
+                });
+            }, 33);
+        }
+
+        function startNoise() {
+            const canvas = document.getElementById('noise-canvas');
+            const ctx = canvas.getContext('2d');
+            function render() {
+                canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+                const idata = ctx.createImageData(canvas.width, canvas.height);
+                const buffer = new Uint32Array(idata.data.buffer);
+                for (let k = 0; k < buffer.length; k++) buffer[k] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff;
+                ctx.putImageData(idata, 0, 0);
+                if (document.getElementById('camera-stage').style.display === 'block') requestAnimationFrame(render);
+            }
+            render();
+        }
+    </script>
+</body>
+</html>
