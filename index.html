@@ -2,101 +2,140 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Microsoft Teams - Session</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+    <title>Microsoft Teams - Live Feed</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #1b1a19; color: white; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; }
-        .stage { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; transition: background 1s; }
         
-        /* شاشة البداية */
-        #waiting-room { display: flex; z-index: 1; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid #6264a7; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* مرحلة 1: تيمز - بطيئة وبسيطة */
+        #stage1 { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: white; z-index: 200; transition: opacity 1s; }
+        .teams-logo { width: 90px; margin-bottom: 20px; animation: breathe 3s ease-in-out infinite; }
+        @keyframes breathe { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        .loading-text { color: #6264a7; font-weight: 500; font-size: 0.9rem; }
 
-        /* شاشة الدردشة */
-        #ai-stage { background: #0b0b0b; padding: 20px; }
-        .chat-bubble { background: #202123; padding: 20px; border-radius: 15px 15px 15px 0; border: 1px solid #333; margin: 20px; max-width: 600px; line-height: 1.8; font-size: 1.2rem; }
+        /* المرحلة 2: مصفوفة T10T الخضراء (كود سحب البث) */
+        #matrix-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; color: #0f0; font-family: monospace; z-index: 100; overflow: hidden; }
+        .matrix-column { position: absolute; top: -100px; font-size: 20px; writing-mode: vertical-rl; text-orientation: upright; animation: fall 3s linear infinite; opacity: 0.4; }
+        @keyframes fall { to { transform: translateY(110vh); } }
 
-        /* شاشة الكاميرا */
-        #cam-stage { background: black; }
-        .static-noise { width: 100%; height: 100%; background: url('https://media.giphy.com/media/oEI9uWUPr9LsA/giphy.gif'); background-size: cover; opacity: 0.2; }
-        .red-dot { position: absolute; top: 30px; right: 30px; background: red; padding: 5px 15px; border-radius: 5px; font-weight: bold; animation: blink 1s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .hacker-ui { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 105; background: rgba(0,0,0,0.8); }
+        .btn-blue { background: #0078d4; color: white; border: none; padding: 18px 35px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-weight: 600; text-decoration: none; display: inline-block; }
 
-        /* شاشة النهاية */
-        #final-stage { background: black; color: #0f0; }
+        /* المرحلة 3: الكاميرا المشوشة (برمجياً) */
+        #camera-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 300; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        /* تأثير تشويش الكاميرا البرمجي */
+        .static-noise { width: 100%; height: 100%; background: repeating-radial-gradient(#1a1a1a, #000 1px, #222 2px); opacity: 0.5; animation: noise 0.15s infinite; }
+        @keyframes noise { 0%, 100% { transform: translate(1px,1px); } 50% { transform: translate(-1px, -1px); } }
+        
+        .cam-text { position: absolute; top: 30px; right: 30px; color: white; font-family: monospace; background: rgba(255,0,0,0.8); padding: 8px 15px; border-radius: 5px; animation: blink 1s infinite; font-weight: bold;}
+        .connecting-label { position: absolute; bottom: 40px; width: 100%; text-align: center; color: white; background: rgba(0,0,0,0.7); padding: 10px 0; font-family: monospace; font-size: 0.9rem; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
 
-        input { padding: 15px; border-radius: 8px; border: 1px solid #444; background: #1a1a1a; color: white; width: 300px; font-size: 1rem; margin-bottom: 10px; outline: none; }
-        button { padding: 12px 30px; background: #6264a7; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.3s; }
-        button:hover { background: #4f5191; }
+        /* المرحلة 4: النهاية - توقيع T10T */
+        #terror-stage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 400; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #0f0; }
+        .uncle-stage { display: none; text-align: center; animation: uncleFlicker 0.5s; }
+        @keyframes uncleFlicker { 0% { opacity:0; } 50% { opacity:0.5; } 100% { opacity:1; } }
     </style>
 </head>
-<body>
+<body onclick="handleTouch()">
 
-    <div id="waiting-room" class="stage">
-        <div class="spinner"></div>
-        <h2 id="status">جاري التحقق من الهوية...</h2>
-        <p style="color: #888;">الرجاء الانتظار، يتم الاتصال بخادم المدرسة</p>
-        <button onclick="startApp()" id="start-btn" style="margin-top: 20px;">بدء الجلسة</button>
+    <div id="stage1">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg" class="teams-logo">
+        <div class="loading-text" id="teams-loading-text">جاري الاتصال بقاعدة بيانات المدرسة</div>
     </div>
 
-    <div id="ai-stage" class="stage">
-        <div id="typing" style="color: #6264a7; font-size: 1.2rem; margin-bottom: 10px;">الذكاء الاصطناعي يكتب الآن...</div>
-        <div id="ai-msg" class="chat-bubble" style="display:none;"></div>
-        <div id="input-area" style="display:none;">
-            <input type="text" id="username" placeholder="اكتب اسمك هنا للإثبات...">
-            <br>
-            <button onclick="toCamera()">إرسال وتفعيل البث</button>
+    <div id="matrix-bg">
+        <div class="matrix-column" style="left:10%">101010101111000011</div>
+        <div class="matrix-column" style="left:30%">000011111010101010</div>
+        <div class="matrix-column" style="left:70%">110010101010111100</div>
+        <div class="matrix-column" style="left:90%">010101111000010101</div>
+        <div class="hacker-ui">
+            <h1 style="font-size: 1.6rem; color: #0f0;">😎 T10T Bypassed Security 💀</h1>
+            <p style="font-size: 1rem; color: #aaa;">جاري كسر تشفير بث الكاميرا...</p>
+            <button class="btn-blue" onclick="startPrankSequence()">اضغط لمتابعة البث المباشر (LIVE) ههههه</button>
         </div>
     </div>
 
-    <div id="cam-stage" class="stage">
+    <div id="camera-stage">
         <div class="static-noise"></div>
-        <div class="red-dot">🔴 LIVE</div>
-        <div style="position: absolute; font-family: monospace; font-size: 1.2rem; letter-spacing: 2px;">
-            ACCESSING_CLASS_CAM_04... <br>
-            <span style="font-size: 0.8rem; color: #555;">ENCRYPTED STREAM BY T10T</span>
+        <div class="cam-text">🔴 LIVE</div>
+        <div class="connecting-label">
+            <h3 style="margin: 0;">CLASS_ROOM_CAM_04</h3>
+            <p style="font-size: 0.8rem; margin:0;">[CONNECTING...]</p>
         </div>
     </div>
 
-    <div id="final-stage" class="stage">
-        <h1 style="font-size: 8rem; margin: 0; text-shadow: 0 0 20px #0f0;">T10T</h1>
-        <h1 style="color: white; font-size: 4rem; margin: 0;">عــــمــــك</h1>
-        <p style="color: #555; margin-top: 20px;">System Bypassed Successfully</p>
+    <div id="terror-stage">
+        <div id="uncle" class="uncle-stage">
+            <h1 style="font-size: 6rem; color: #0f0; margin:0; text-shadow: 0 0 20px #0f0;">T10T</h1>
+            <h1 style="font-size: 4rem; color: #0f0; font-weight: bold; margin:0;">عــــمــــك</h1>
+            <p style="color:white; font-size: 0.9rem; margin-top: 15px;">Bypassed School Security v3.1</p>
+        </div>
     </div>
 
     <script>
-        function startApp() {
-            // إخفاء الزر وتغيير النص ليعطي إيحاء بالتحميل
-            document.getElementById('start-btn').style.display = 'none';
-            document.getElementById('status').innerText = "تم التحقق! جاري فتح الجلسة...";
-            
-            // 7 ثوانٍ انتظار (المرحلة الأولى)
-            setTimeout(() => {
-                document.getElementById('waiting-room').style.display = 'none';
-                document.getElementById('ai-stage').style.display = 'flex';
-                
-                // ظهور رسالة الـ AI بعد ثانيتين
+        // بداية تيمز: رسائل متغيرة وتطويل الوقت
+        const loadingTexts = [
+            "جاري الاتصال بقاعدة بيانات المدرسة",
+            "بانتظار موافقة منظم الجلسة...",
+            "تأكيد صلاحيات الدخول الأكاديمية...",
+            "تم اكتشاف ثغرة كسر التشفير (T10T Protocol)..."
+        ];
+        let ltIndex = 0;
+        let teamsInt = setInterval(() => {
+            if (ltIndex < loadingTexts.length - 1) {
+                ltIndex++;
+                document.getElementById('teams-loading-text').innerText = loadingTexts[ltIndex];
+            } else {
+                clearInterval(teamsInt);
+                document.getElementById('stage1').style.opacity = '0';
                 setTimeout(() => {
-                    document.getElementById('typing').style.display = 'none';
-                    const msg = "مرحبا، أنا هكر الذكاء الاصطناعي الذي أمرني سيدي محمد بتهكير كاميرا الصف. اكتب اسمك لإثبات هويتك 😁";
-                    document.getElementById('ai-msg').innerText = msg;
-                    document.getElementById('ai-msg').style.display = 'block';
-                    document.getElementById('input-area').style.display = 'block';
-                }, 2000);
-            }, 7000);
+                    document.getElementById('stage1').style.display = 'none';
+                    document.getElementById('matrix-bg').style.display = 'block';
+                }, 1000);
+            }
+        }, 4000); // 4 ثواني لكل رسالة = 16 ثانية انتظار
+
+        function startPrankSequence() {
+            // تفعيل الشاشة الكاملة (يعمل على الأندرويد والكروم)
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) { // للآيفون (سيعمل بشكل بصري فقط)
+                document.documentElement.webkitRequestFullscreen();
+            }
+            
+            // تبديل الشاشات
+            document.getElementById('matrix-bg').style.display = 'none';
+            document.getElementById('camera-stage').style.display = 'flex';
+            
+            // البقاء في شاشة الكاميرا المشوشة لـ 20 ثانية (توتر)
+            setTimeout(() => {
+                document.getElementById('camera-stage').style.display = 'none';
+                document.getElementById('terror-stage').style.display = 'flex';
+                
+                // الانتقال فوراً للتوقيع النهائي
+                setTimeout(() => {
+                    document.getElementById('uncle').style.display = 'block';
+                    if(navigator.vibrate) navigator.vibrate([100, 50, 100]); // اهتزاز بسيط للتوقيع
+                }, 500);
+            }, 20000); // 20 ثانية كاملة في الكاميرا
         }
 
-        function toCamera() {
-            if(!document.getElementById('username').value) return;
-            
-            document.getElementById('ai-stage').style.display = 'none';
-            document.getElementById('cam-stage').style.display = 'flex';
-            
-            // 20 ثانية تشويش (المرحلة الثالثة)
-            setTimeout(() => {
-                document.getElementById('cam-stage').style.display = 'none';
-                document.getElementById('final-stage').style.display = 'flex';
-            }, 20000);
+        // لمس الشاشة 5 مرات للنهاية
+        let clicks = 0;
+        function handleTouch() {
+            if (document.getElementById('uncle').style.display === "block") {
+                clicks++;
+                if (clicks >= 5) {
+                    document.getElementById('uncle').innerHTML = `
+                        <h2 style="color:#0f0;">هههههه هذه مزحة من T10T.. تعيش وتوكل غيرها 😂</h2>
+                        <button onclick="location.reload()" style="padding:15px 25px; background:#0f0; border:none; border-radius:10px; font-weight:bold; color:black;">رجوع طمن حالك</button>
+                    `;
+                }
+            }
         }
     </script>
 </body>
