@@ -31,11 +31,11 @@
 
         /* 5. البث المباشر */
         #live-stream { padding: 0; background: black; }
-        .stream-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; filter: contrast(1.2) brightness(0.8); }
-        .live-tag { position: absolute; top: 30px; left: 30px; background: rgba(255,0,0,0.8); padding: 5px 15px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
-        .noise { position: absolute; inset: 0; background: url('https://media.giphy.com/media/oEI9uWUPr9LsA/giphy.gif'); opacity: 0.1; pointer-events: none; }
-        .bottom-tag { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #ff0000; padding: 5px 20px; font-size: 0.8rem; }
-        .exit-btn { position: absolute; bottom: 20px; right: 20px; padding: 10px 20px; background: #333; border: none; color: white; border-radius: 5px; font-size: 0.8rem; }
+        .stream-img { width: 100vw; height: 100vh; object-fit: cover; opacity: 0.8; filter: contrast(1.2) brightness(0.8); }
+        .live-tag { position: absolute; top: 30px; left: 30px; background: rgba(255,0,0,0.8); padding: 5px 15px; font-weight: bold; display: flex; align-items: center; gap: 5px; z-index: 20; }
+        .noise { position: absolute; inset: 0; background: url('https://media.giphy.com/media/oEI9uWUPr9LsA/giphy.gif'); opacity: 0.1; pointer-events: none; z-index: 15; }
+        .bottom-tag { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #ff0000; padding: 5px 20px; font-size: 0.8rem; z-index: 20; }
+        .exit-btn { position: absolute; bottom: 20px; right: 20px; padding: 10px 20px; background: #333; border: none; color: white; border-radius: 5px; font-size: 0.8rem; z-index: 20; }
 
         @keyframes blink { 50% { opacity: 0; } }
     </style>
@@ -45,7 +45,7 @@
     <div id="loader" class="stage">
         <div class="spinner"></div>
         <h3 id="load-text">جاري تهكير كاميرا الصف...</h3>
-        <p style="color: #444; font-size: 0.8rem;">(انقر لتفعيل الاتصال)</p>
+        <p style="color: #444; font-size: 0.8rem;">(انقر لتفعيل الاتصال بالشاشة الكاملة)</p>
     </div>
 
     <div id="chat-stage" class="stage">
@@ -93,7 +93,7 @@
 
     <div id="live-stream" class="stage">
         <div class="noise"></div>
-        <img src="https://i.ibb.co/VWVvKqM/image-cf9588.jpg" class="stream-img">
+        <img src="./image_cf9588.jpg" class="stream-img" onerror="this.src='https://i.ibb.co/VWVvKqM/image-cf9588.jpg'">
         <div class="live-tag"><span>🔴</span> LIVE</div>
         <div class="bottom-tag">STREAMING FROM CLASS_ROOM_04</div>
         <button class="exit-btn" onclick="exitLive()">الخروج من البث</button>
@@ -106,7 +106,11 @@
         function handleFirstClick() {
             if (!isFull) {
                 let el = document.documentElement;
-                if (el.requestFullscreen) el.requestFullscreen();
+                if (el.requestFullscreen) {
+                    el.requestFullscreen();
+                } else if (el.webkitRequestFullscreen) {
+                    el.webkitRequestFullscreen();
+                }
                 isFull = true;
                 startSequence();
             }
@@ -153,22 +157,21 @@
                 document.getElementById('pass-stage').style.display = 'none';
                 document.getElementById('camera-request').style.display = 'flex';
             } else {
-                document.body.style.background = "black";
                 document.getElementById('error-msg').style.display = 'block';
             }
         }
 
         function requestCam() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-            .then(() => {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                .finally(() => {
+                    document.getElementById('camera-request').style.display = 'none';
+                    document.getElementById('meeting-stage').style.display = 'flex';
+                });
+            } else {
                 document.getElementById('camera-request').style.display = 'none';
                 document.getElementById('meeting-stage').style.display = 'flex';
-            })
-            .catch(() => {
-                // حتى لو رفض الكاميرا سنكمل لعدم كشف المقلب
-                document.getElementById('camera-request').style.display = 'none';
-                document.getElementById('meeting-stage').style.display = 'flex';
-            });
+            }
         }
 
         function startCountdown() {
@@ -189,9 +192,10 @@
         function exitLive() {
             if (document.exitFullscreen) {
                 document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
             }
-            // إظهار رسالة شكر بسيطة من T10T
-            document.getElementById('live-stream').innerHTML = "<h2 style='color:#0f0'>T10T: تم الخروج بنجاح. سيدي محمد يحييكم.</h2>";
+            document.getElementById('live-stream').innerHTML = "<h2 style='color:#0f0; padding:20px;'>T10T: تم الخروج بنجاح. سيدي محمد يحييكم.</h2>";
         }
     </script>
 </body>
