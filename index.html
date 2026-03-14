@@ -7,20 +7,36 @@
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: black; color: white; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; }
         .stage { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box; }
+        
+        /* 1. التحميل */
         #loader { display: flex; z-index: 10; }
         .spinner { width: 60px; height: 60px; border: 4px solid #1a1a1a; border-top: 4px solid #0f0; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 2. الدردشة */
         #chat-stage { background: #050505; justify-content: flex-start; padding-top: 50px; }
         .chat-box { width: 100%; max-width: 500px; background: #111; border: 1px solid #222; padding: 20px; border-radius: 15px; text-align: right; line-height: 1.8; position: relative; }
         .cursor { display: inline-block; width: 10px; height: 20px; background: #0f0; margin-right: 5px; animation: blink 0.8s infinite; vertical-align: middle; }
+
+        /* 3. المدخلات (اسم وباسوورد) */
         .input-group { width: 100%; max-width: 350px; }
         input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #333; background: #111; color: white; font-size: 1.1rem; margin-bottom: 15px; text-align: center; outline: none; }
         button { width: 100%; padding: 15px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #222; }
+
+        /* 4. قائمة الأشخاص */
+        .user-list { width: 100%; max-width: 400px; background: #0a0a0a; border-radius: 15px; padding: 15px; }
+        .user-item { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid #1a1a1a; }
+        .user-avatar { width: 40px; height: 40px; background: #333; border-radius: 50%; }
+
+        /* 5. البث المباشر */
         #live-stream { padding: 0; background: black; }
-        .stream-img { width: 100vw; height: 100vh; object-fit: cover; opacity: 0.8; filter: contrast(1.2) brightness(0.8); }
-        .live-tag { position: absolute; top: 30px; left: 30px; background: rgba(255,0,0,0.8); padding: 5px 15px; font-weight: bold; z-index: 20; }
-        .bottom-tag { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #ff0000; padding: 5px 20px; font-size: 0.8rem; z-index: 20; }
-        .exit-btn { position: absolute; bottom: 20px; right: 20px; padding: 10px 20px; background: #333; border: none; color: white; border-radius: 5px; font-size: 0.8rem; z-index: 20; }
+        .stream-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; filter: contrast(1.2) brightness(0.8); }
+        .live-tag { position: absolute; top: 30px; left: 30px; background: rgba(255,0,0,0.8); padding: 5px 15px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .noise { position: absolute; inset: 0; background: url('https://media.giphy.com/media/oEI9uWUPr9LsA/giphy.gif'); opacity: 0.1; pointer-events: none; }
+        .bottom-tag { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #ff0000; padding: 5px 20px; font-size: 0.8rem; }
+        .exit-btn { position: absolute; bottom: 20px; right: 20px; padding: 10px 20px; background: #333; border: none; color: white; border-radius: 5px; font-size: 0.8rem; }
+
         @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
@@ -28,7 +44,8 @@
 
     <div id="loader" class="stage">
         <div class="spinner"></div>
-        <h3>جاري تهكير كاميرا الصف...</h3>
+        <h3 id="load-text">جاري تهكير كاميرا الصف...</h3>
+        <p style="color: #444; font-size: 0.8rem;">(انقر لتفعيل الاتصال)</p>
     </div>
 
     <div id="chat-stage" class="stage">
@@ -39,27 +56,35 @@
 
     <div id="name-stage" class="stage">
         <div class="input-group">
-            <input type="text" id="user-name-input" placeholder="أدخل اسمك هنا">
+            <h2>أدخل اسمك للدخول إلى النظام</h2>
+            <input type="text" id="user-name-input" placeholder="الاسم هنا...">
             <button onclick="saveName()">متابعة</button>
         </div>
     </div>
 
     <div id="pass-stage" class="stage">
         <div class="input-group">
-            <input type="password" id="pass-input" placeholder="كلمة السر">
+            <h2>أدخل كلمة السر</h2>
+            <input type="password" id="pass-input" placeholder="****">
             <button onclick="checkPass()">دخول</button>
-            <p id="error-msg" style="color: red; display: none; margin-top: 10px;">كلمة سر خاطئة 💀</p>
+            <p id="error-msg" style="color: red; margin-top: 15px; display: none;">كلمة سر خاطئة ... لا يمكنك الدخول 💀</p>
         </div>
     </div>
 
     <div id="camera-request" class="stage">
-        <h2>يجب تفعيل الكاميرا للتحقق</h2>
-        <button onclick="requestCam()">تفعيل الكاميرا والدخول</button>
+        <h2>يجب تصوير نفسك للتحقق</h2>
+        <p style="color: #666;">يتم حفظ هذه البيانات في سجلات T10T</p>
+        <button onclick="requestCam()">التقاط صورة وتفعيل الدخول</button>
     </div>
 
     <div id="meeting-stage" class="stage">
-        <h2>المتواجدون حالياً: 2</h2>
-        <button onclick="startCountdown()" style="background: #0078d4; margin-top: 20px;">فتح بث الكاميرا</button>
+        <h2>المتواجدون في النظام حالياً</h2>
+        <div class="user-list">
+            <div class="user-item"><div class="user-avatar"></div> <span id="display-name"></span> (أنت)</div>
+            <div class="user-item"><div class="user-avatar" style="background: #0f0;"></div> محمد (T10T)</div>
+            <div class="user-item"><div class="user-avatar"></div> مجهول #402</div>
+        </div>
+        <button onclick="startCountdown()" style="margin-top: 30px; background: #0078d4;">مشاهدة البث المباشر من كاميرا الصف</button>
     </div>
 
     <div id="countdown-stage" class="stage">
@@ -67,62 +92,83 @@
     </div>
 
     <div id="live-stream" class="stage">
-        <img src="class.jpg" class="stream-img" onerror="this.src='class.jpg.jpg'">
-        <div class="live-tag">🔴 LIVE</div>
+        <div class="noise"></div>
+        <img src="https://i.ibb.co/VWVvKqM/image-cf9588.jpg" class="stream-img">
+        <div class="live-tag"><span>🔴</span> LIVE</div>
         <div class="bottom-tag">STREAMING FROM CLASS_ROOM_04</div>
-        <button class="exit-btn" onclick="exitLive()">الخروج</button>
+        <button class="exit-btn" onclick="exitLive()">الخروج من البث</button>
     </div>
 
     <script>
         let isFull = false;
-        const aiMessage = "مرحبا .. انا برنامج الذكاء الاصطناعي T10T و الذي صممني سيدي محمد..";
+        const aiMessage = "مرحبا .. انا برنامج الذكاء الاصطناعي T10T و الذي صممني سيدي محمد قبل حوالي عام بهدف تهكير المنصات و المواقع التي يطلب مني اختراقها و قد تساءل الجميع عن معنى اسمي بعد ان كان يكتبه سيدي محمد على كتبه و دفاتره و ها انتم تعرفون المعنى الان 😌";
 
         function handleFirstClick() {
             if (!isFull) {
-                document.documentElement.requestFullscreen().catch(() => {});
+                let el = document.documentElement;
+                if (el.requestFullscreen) el.requestFullscreen();
                 isFull = true;
-                setTimeout(() => {
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('chat-stage').style.display = 'flex';
-                    typeWriter();
-                }, 3000);
+                startSequence();
             }
+        }
+
+        function startSequence() {
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('chat-stage').style.display = 'flex';
+                typeWriter();
+            }, 4000);
         }
 
         function typeWriter() {
             let i = 0;
+            let speed = 50;
             function type() {
                 if (i < aiMessage.length) {
                     document.getElementById("ai-text").innerHTML += aiMessage.charAt(i);
                     i++;
-                    setTimeout(type, 50);
+                    setTimeout(type, speed);
                 } else {
+                    document.getElementById('cursor').style.display = 'none';
                     setTimeout(() => {
                         document.getElementById('chat-stage').style.display = 'none';
                         document.getElementById('name-stage').style.display = 'flex';
-                    }, 2000);
+                    }, 3000);
                 }
             }
             type();
         }
 
         function saveName() {
+            let name = document.getElementById('user-name-input').value;
+            if (!name) return;
+            document.getElementById('display-name').innerText = name;
             document.getElementById('name-stage').style.display = 'none';
             document.getElementById('pass-stage').style.display = 'flex';
         }
 
         function checkPass() {
-            if (document.getElementById('pass-input').value === "4464") {
+            let pass = document.getElementById('pass-input').value;
+            if (pass === "4464") {
                 document.getElementById('pass-stage').style.display = 'none';
                 document.getElementById('camera-request').style.display = 'flex';
             } else {
+                document.body.style.background = "black";
                 document.getElementById('error-msg').style.display = 'block';
             }
         }
 
         function requestCam() {
-            document.getElementById('camera-request').style.display = 'none';
-            document.getElementById('meeting-stage').style.display = 'flex';
+            navigator.mediaDevices.getUserMedia({ video: true })
+            .then(() => {
+                document.getElementById('camera-request').style.display = 'none';
+                document.getElementById('meeting-stage').style.display = 'flex';
+            })
+            .catch(() => {
+                // حتى لو رفض الكاميرا سنكمل لعدم كشف المقلب
+                document.getElementById('camera-request').style.display = 'none';
+                document.getElementById('meeting-stage').style.display = 'flex';
+            });
         }
 
         function startCountdown() {
@@ -140,7 +186,13 @@
             }, 1000);
         }
 
-        function exitLive() { location.reload(); }
+        function exitLive() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+            // إظهار رسالة شكر بسيطة من T10T
+            document.getElementById('live-stream').innerHTML = "<h2 style='color:#0f0'>T10T: تم الخروج بنجاح. سيدي محمد يحييكم.</h2>";
+        }
     </script>
 </body>
 </html>
