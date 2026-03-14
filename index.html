@@ -5,113 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teams Connect</title>
     <style>
-        /* إعدادات تضمن عدم ظهور شاشة بيضاء */
-        body, html { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            background-color: #1b1a19 !important; /* اللون الأسود يظهر فوراً */
-            color: white; font-family: sans-serif; overflow: hidden;
-        }
-
-        /* شاشة الانتظار الأساسية */
-        #waiting-room {
-            position: fixed; inset: 0; 
-            display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; 
-            z-index: 9999; background: #1b1a19;
-        }
-
-        .spinner {
-            width: 50px; height: 50px; 
-            border: 5px solid rgba(255,255,255,0.1); 
-            border-top: 5px solid #6264a7; 
-            border-radius: 50%; 
-            animation: spin 1s linear infinite;
-        }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #1b1a19; color: white; font-family: sans-serif; overflow: hidden; }
+        #waiting-room, #ai-stage, #cam-stage, #final-stage { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        
+        /* شاشة البداية ظاهرة دائماً */
+        #waiting-room { display: flex; z-index: 10; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid #6264a7; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* شاشة الـ AI */
-        #ai-stage { display: none; position: fixed; inset: 0; background: #0b0b0b; z-index: 10000; flex-direction: column; padding: 20px; }
-        .bubble { background: #202123; padding: 15px; border-radius: 15px 15px 15px 0; border: 1px solid #333; margin-top: 20px; }
+        /* شاشة الدردشة */
+        #ai-stage { background: #0b0b0b; padding: 20px; }
+        .bubble { background: #202123; padding: 15px; border-radius: 15px 15px 15px 0; border: 1px solid #333; margin: 20px; max-width: 80%; }
 
-        /* شاشة التشويش */
-        #cam-stage { display: none; position: fixed; inset: 0; z-index: 11000; background: black; }
-        canvas { width: 100%; height: 100%; }
+        /* شاشة الكاميرا المعطلة - تأثير مضمون */
+        #cam-stage { background: black; }
+        .noise-effect { width: 100%; height: 100%; background: url('https://media.giphy.com/media/oEI9uWUPr9LsA/giphy.gif'); background-size: cover; opacity: 0.3; }
+        .cam-label { position: absolute; top: 20px; right: 20px; background: red; padding: 5px 10px; font-weight: bold; }
 
-        /* القفلة */
-        #final-stage { display: none; position: fixed; inset: 0; z-index: 12000; background: black; flex-direction: column; align-items: center; justify-content: center; }
+        input { padding: 12px; border-radius: 5px; border: 1px solid #444; background: #1a1a1a; color: white; margin-bottom: 10px; width: 80%; }
+        button { padding: 10px 20px; background: #6264a7; color: white; border: none; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
-<body onclick="start()">
+<body>
 
-    <div id="waiting-room">
+    <div id="waiting-room" onclick="startSequence()">
         <div class="spinner"></div>
-        <h2 id="status">جاري التحقق...</h2>
-        <p style="color: #888;">انقر لبدء الاتصال الآمن</p>
+        <h2 id="status">جاري التحقق من الهوية...</h2>
+        <p style="color: #666;">(انقر هنا للبدء)</p>
     </div>
 
     <div id="ai-stage">
-        <div id="typing" style="color:#6264a7;">الذكاء الاصطناعي يكتب...</div>
+        <div id="typing" style="color: #6264a7;">الذكاء الاصطناعي يكتب...</div>
         <div id="msg" class="bubble" style="display:none;"></div>
-        <div id="input-box" style="display:none; margin-top: auto; padding-bottom: 20px;">
-            <input type="text" id="uname" placeholder="اسمك هنا..." style="width:70%; padding:10px; border-radius:5px; border:none;">
-            <button onclick="goHacking()" style="padding:10px; background:#0078d4; color:white; border:none; border-radius:5px;">إرسال</button>
+        <div id="input-area" style="display:none; width: 100%;">
+            <input type="text" id="uname" placeholder="اكتب اسمك هنا...">
+            <button onclick="goToCam()">إرسال</button>
         </div>
     </div>
 
-    <div id="cam-stage"><canvas id="c"></canvas></div>
+    <div id="cam-stage">
+        <div class="noise-effect"></div>
+        <div class="cam-label">🔴 LIVE</div>
+        <div style="position: absolute; color: white; font-family: monospace;">CONNECTING TO CLASS_CAM_04...</div>
+    </div>
 
     <div id="final-stage">
-        <h1 style="color:#0f0; font-size:4rem;">T10T</h1>
-        <h1 style="color:white; font-size:3rem;">عــــمــــك</h1>
+        <h1 style="color: #0f0; font-size: 5rem; margin: 0;">T10T</h1>
+        <h1 style="color: white; font-size: 3rem; margin: 0;">عــــمــــك</h1>
     </div>
 
     <script>
-        let step = 0;
-
-        function start() {
-            if (step !== 0) return;
-            step = 1;
-            
-            // محاولة الشاشة الكاملة
-            try { document.documentElement.requestFullscreen(); } catch(e) {}
-
-            document.getElementById('status').innerText = "تم الاتصال بسيرفر المدرسة";
-
-            // 7 ثوانٍ انتظار
+        function startSequence() {
+            document.getElementById('status').innerText = "تم الاتصال بنجاح!";
             setTimeout(() => {
                 document.getElementById('waiting-room').style.display = 'none';
                 document.getElementById('ai-stage').style.display = 'flex';
-                
                 setTimeout(() => {
                     document.getElementById('typing').style.display = 'none';
                     document.getElementById('msg').innerText = "مرحبا، أنا هكر الذكاء الاصطناعي الذي أمرني سيدي محمد بتهكير كاميرا الصف. اكتب اسمك لإثبات هويتك 😁";
                     document.getElementById('msg').style.display = 'block';
-                    document.getElementById('input-box').style.display = 'block';
+                    document.getElementById('input-area').style.display = 'block';
                 }, 2000);
-            }, 7000);
+            }, 7000); // 7 ثواني انتظار
         }
 
-        function goHacking() {
+        function goToCam() {
             if (!document.getElementById('uname').value) return;
             document.getElementById('ai-stage').style.display = 'none';
-            document.getElementById('cam-stage').style.display = 'block';
-            
-            const cv = document.getElementById('c');
-            const x = cv.getContext('2d');
-            function draw() {
-                cv.width = window.innerWidth; cv.height = window.innerHeight;
-                const d = x.createImageData(cv.width, cv.height);
-                const b = new Uint32Array(d.data.buffer);
-                for (let i = 0; i < b.length; i++) b[i] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff;
-                x.putImageData(d, 0, 0);
-                if(document.getElementById('cam-stage').style.display === 'block') requestAnimationFrame(draw);
-            }
-            draw();
-
+            document.getElementById('cam-stage').style.display = 'flex';
             setTimeout(() => {
                 document.getElementById('cam-stage').style.display = 'none';
                 document.getElementById('final-stage').style.display = 'flex';
-            }, 20000);
+            }, 20000); // 20 ثانية تشويش
         }
     </script>
 </body>
