@@ -2,81 +2,101 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teams Connect</title>
+    <title>Microsoft Teams - Session</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #1b1a19; color: white; font-family: sans-serif; overflow: hidden; }
-        #waiting-room, #ai-stage, #cam-stage, #final-stage { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #1b1a19; color: white; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; }
+        .stage { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         
-        /* شاشة البداية ظاهرة دائماً */
-        #waiting-room { display: flex; z-index: 10; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid #6264a7; border-radius: 50%; animation: spin 1s linear infinite; }
+        /* شاشة البداية */
+        #waiting-room { display: flex; z-index: 1; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid #6264a7; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* شاشة الدردشة */
         #ai-stage { background: #0b0b0b; padding: 20px; }
-        .bubble { background: #202123; padding: 15px; border-radius: 15px 15px 15px 0; border: 1px solid #333; margin: 20px; max-width: 80%; }
+        .chat-bubble { background: #202123; padding: 20px; border-radius: 15px 15px 15px 0; border: 1px solid #333; margin: 20px; max-width: 600px; line-height: 1.8; font-size: 1.2rem; }
 
-        /* شاشة الكاميرا المعطلة - تأثير مضمون */
+        /* شاشة الكاميرا */
         #cam-stage { background: black; }
-        .noise-effect { width: 100%; height: 100%; background: url('https://media.giphy.com/media/oEI9uWUPr9LsA/giphy.gif'); background-size: cover; opacity: 0.3; }
-        .cam-label { position: absolute; top: 20px; right: 20px; background: red; padding: 5px 10px; font-weight: bold; }
+        .static-noise { width: 100%; height: 100%; background: url('https://media.giphy.com/media/oEI9uWUPr9LsA/giphy.gif'); background-size: cover; opacity: 0.2; }
+        .red-dot { position: absolute; top: 30px; right: 30px; background: red; padding: 5px 15px; border-radius: 5px; font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        input { padding: 12px; border-radius: 5px; border: 1px solid #444; background: #1a1a1a; color: white; margin-bottom: 10px; width: 80%; }
-        button { padding: 10px 20px; background: #6264a7; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        /* شاشة النهاية */
+        #final-stage { background: black; color: #0f0; }
+
+        input { padding: 15px; border-radius: 8px; border: 1px solid #444; background: #1a1a1a; color: white; width: 300px; font-size: 1rem; margin-bottom: 10px; outline: none; }
+        button { padding: 12px 30px; background: #6264a7; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.3s; }
+        button:hover { background: #4f5191; }
     </style>
 </head>
 <body>
 
-    <div id="waiting-room" onclick="startSequence()">
+    <div id="waiting-room" class="stage">
         <div class="spinner"></div>
         <h2 id="status">جاري التحقق من الهوية...</h2>
-        <p style="color: #666;">(انقر هنا للبدء)</p>
+        <p style="color: #888;">الرجاء الانتظار، يتم الاتصال بخادم المدرسة</p>
+        <button onclick="startApp()" id="start-btn" style="margin-top: 20px;">بدء الجلسة</button>
     </div>
 
-    <div id="ai-stage">
-        <div id="typing" style="color: #6264a7;">الذكاء الاصطناعي يكتب...</div>
-        <div id="msg" class="bubble" style="display:none;"></div>
-        <div id="input-area" style="display:none; width: 100%;">
-            <input type="text" id="uname" placeholder="اكتب اسمك هنا...">
-            <button onclick="goToCam()">إرسال</button>
+    <div id="ai-stage" class="stage">
+        <div id="typing" style="color: #6264a7; font-size: 1.2rem; margin-bottom: 10px;">الذكاء الاصطناعي يكتب الآن...</div>
+        <div id="ai-msg" class="chat-bubble" style="display:none;"></div>
+        <div id="input-area" style="display:none;">
+            <input type="text" id="username" placeholder="اكتب اسمك هنا للإثبات...">
+            <br>
+            <button onclick="toCamera()">إرسال وتفعيل البث</button>
         </div>
     </div>
 
-    <div id="cam-stage">
-        <div class="noise-effect"></div>
-        <div class="cam-label">🔴 LIVE</div>
-        <div style="position: absolute; color: white; font-family: monospace;">CONNECTING TO CLASS_CAM_04...</div>
+    <div id="cam-stage" class="stage">
+        <div class="static-noise"></div>
+        <div class="red-dot">🔴 LIVE</div>
+        <div style="position: absolute; font-family: monospace; font-size: 1.2rem; letter-spacing: 2px;">
+            ACCESSING_CLASS_CAM_04... <br>
+            <span style="font-size: 0.8rem; color: #555;">ENCRYPTED STREAM BY T10T</span>
+        </div>
     </div>
 
-    <div id="final-stage">
-        <h1 style="color: #0f0; font-size: 5rem; margin: 0;">T10T</h1>
-        <h1 style="color: white; font-size: 3rem; margin: 0;">عــــمــــك</h1>
+    <div id="final-stage" class="stage">
+        <h1 style="font-size: 8rem; margin: 0; text-shadow: 0 0 20px #0f0;">T10T</h1>
+        <h1 style="color: white; font-size: 4rem; margin: 0;">عــــمــــك</h1>
+        <p style="color: #555; margin-top: 20px;">System Bypassed Successfully</p>
     </div>
 
     <script>
-        function startSequence() {
-            document.getElementById('status').innerText = "تم الاتصال بنجاح!";
+        function startApp() {
+            // إخفاء الزر وتغيير النص ليعطي إيحاء بالتحميل
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('status').innerText = "تم التحقق! جاري فتح الجلسة...";
+            
+            // 7 ثوانٍ انتظار (المرحلة الأولى)
             setTimeout(() => {
                 document.getElementById('waiting-room').style.display = 'none';
                 document.getElementById('ai-stage').style.display = 'flex';
+                
+                // ظهور رسالة الـ AI بعد ثانيتين
                 setTimeout(() => {
                     document.getElementById('typing').style.display = 'none';
-                    document.getElementById('msg').innerText = "مرحبا، أنا هكر الذكاء الاصطناعي الذي أمرني سيدي محمد بتهكير كاميرا الصف. اكتب اسمك لإثبات هويتك 😁";
-                    document.getElementById('msg').style.display = 'block';
+                    const msg = "مرحبا، أنا هكر الذكاء الاصطناعي الذي أمرني سيدي محمد بتهكير كاميرا الصف. اكتب اسمك لإثبات هويتك 😁";
+                    document.getElementById('ai-msg').innerText = msg;
+                    document.getElementById('ai-msg').style.display = 'block';
                     document.getElementById('input-area').style.display = 'block';
                 }, 2000);
-            }, 7000); // 7 ثواني انتظار
+            }, 7000);
         }
 
-        function goToCam() {
-            if (!document.getElementById('uname').value) return;
+        function toCamera() {
+            if(!document.getElementById('username').value) return;
+            
             document.getElementById('ai-stage').style.display = 'none';
             document.getElementById('cam-stage').style.display = 'flex';
+            
+            // 20 ثانية تشويش (المرحلة الثالثة)
             setTimeout(() => {
                 document.getElementById('cam-stage').style.display = 'none';
                 document.getElementById('final-stage').style.display = 'flex';
-            }, 20000); // 20 ثانية تشويش
+            }, 20000);
         }
     </script>
 </body>
