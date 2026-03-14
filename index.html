@@ -16,13 +16,9 @@
         .input-group { width: 100%; max-width: 350px; }
         input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #333; background: #111; color: white; font-size: 1.1rem; margin-bottom: 15px; text-align: center; outline: none; }
         button { width: 100%; padding: 15px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .user-list { width: 100%; max-width: 400px; background: #0a0a0a; border-radius: 15px; padding: 15px; }
-        .user-item { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid #1a1a1a; }
-        .user-avatar { width: 40px; height: 40px; background: #333; border-radius: 50%; }
         #live-stream { padding: 0; background: black; }
         .stream-img { width: 100vw; height: 100vh; object-fit: cover; opacity: 0.8; filter: contrast(1.2) brightness(0.8); }
         .live-tag { position: absolute; top: 30px; left: 30px; background: rgba(255,0,0,0.8); padding: 5px 15px; font-weight: bold; z-index: 20; }
-        .noise { position: absolute; inset: 0; background: url('https://media.giphy.com/media/oEI9uWUPr9LsA/giphy.gif'); opacity: 0.1; pointer-events: none; z-index: 15; }
         .bottom-tag { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #ff0000; padding: 5px 20px; font-size: 0.8rem; z-index: 20; }
         .exit-btn { position: absolute; bottom: 20px; right: 20px; padding: 10px 20px; background: #333; border: none; color: white; border-radius: 5px; font-size: 0.8rem; z-index: 20; }
         @keyframes blink { 50% { opacity: 0; } }
@@ -33,7 +29,6 @@
     <div id="loader" class="stage">
         <div class="spinner"></div>
         <h3>جاري تهكير كاميرا الصف...</h3>
-        <p style="color: #444; font-size: 0.8rem;">(انقر لتفعيل الاتصال)</p>
     </div>
 
     <div id="chat-stage" class="stage">
@@ -44,33 +39,27 @@
 
     <div id="name-stage" class="stage">
         <div class="input-group">
-            <h2>أدخل اسمك للدخول إلى النظام</h2>
-            <input type="text" id="user-name-input" placeholder="الاسم هنا...">
+            <input type="text" id="user-name-input" placeholder="أدخل اسمك هنا">
             <button onclick="saveName()">متابعة</button>
         </div>
     </div>
 
     <div id="pass-stage" class="stage">
         <div class="input-group">
-            <h2>أدخل كلمة السر</h2>
-            <input type="password" id="pass-input" placeholder="****">
+            <input type="password" id="pass-input" placeholder="كلمة السر">
             <button onclick="checkPass()">دخول</button>
-            <p id="error-msg" style="color: red; margin-top: 15px; display: none;">كلمة سر خاطئة ... لا يمكنك الدخول 💀</p>
+            <p id="error-msg" style="color: red; display: none; margin-top: 10px;">كلمة سر خاطئة 💀</p>
         </div>
     </div>
 
     <div id="camera-request" class="stage">
-        <h2>يجب تصوير نفسك للتحقق</h2>
-        <button onclick="requestCam()">التقاط صورة وتفعيل الدخول</button>
+        <h2>يجب تفعيل الكاميرا للتحقق</h2>
+        <button onclick="requestCam()">تفعيل الكاميرا والدخول</button>
     </div>
 
     <div id="meeting-stage" class="stage">
-        <h2>المتواجدون في النظام حالياً</h2>
-        <div class="user-list">
-            <div class="user-item"><div class="user-avatar"></div> <span id="display-name"></span> (أنت)</div>
-            <div class="user-item"><div class="user-avatar" style="background: #0f0;"></div> محمد (T10T)</div>
-        </div>
-        <button onclick="startCountdown()" style="margin-top: 30px; background: #0078d4;">مشاهدة البث المباشر</button>
+        <h2>المتواجدون حالياً: 2</h2>
+        <button onclick="startCountdown()" style="background: #0078d4; margin-top: 20px;">فتح بث الكاميرا</button>
     </div>
 
     <div id="countdown-stage" class="stage">
@@ -78,27 +67,25 @@
     </div>
 
     <div id="live-stream" class="stage">
-        <div class="noise"></div>
-        <img src="class.jpg" class="stream-img" onerror="this.src='https://raw.githubusercontent.com/m7ammad14zaid-hue/-/main/class.jpg'">
+        <img src="class.jpg" class="stream-img" onerror="this.src='class.jpg.jpg'">
         <div class="live-tag">🔴 LIVE</div>
         <div class="bottom-tag">STREAMING FROM CLASS_ROOM_04</div>
-        <button class="exit-btn" onclick="exitLive()">الخروج من البث</button>
+        <button class="exit-btn" onclick="exitLive()">الخروج</button>
     </div>
 
     <script>
         let isFull = false;
-        const aiMessage = "مرحبا .. انا برنامج الذكاء الاصطناعي T10T و الذي صممني سيدي محمد قبل حوالي عام بهدف تهكير المنصات و المواقع التي يطلب مني اختراقها و قد تساءل الجميع عن معنى اسمي بعد ان كان يكتبه سيدي محمد على كتبه و دفاتره و ها انتم تعرفون المعنى الان 😌";
+        const aiMessage = "مرحبا .. انا برنامج الذكاء الاصطناعي T10T و الذي صممني سيدي محمد..";
 
         function handleFirstClick() {
             if (!isFull) {
-                let el = document.documentElement;
-                if (el.requestFullscreen) el.requestFullscreen();
+                document.documentElement.requestFullscreen().catch(() => {});
                 isFull = true;
                 setTimeout(() => {
                     document.getElementById('loader').style.display = 'none';
                     document.getElementById('chat-stage').style.display = 'flex';
                     typeWriter();
-                }, 4000);
+                }, 3000);
             }
         }
 
@@ -110,19 +97,16 @@
                     i++;
                     setTimeout(type, 50);
                 } else {
-                    document.getElementById('cursor').style.display = 'none';
                     setTimeout(() => {
                         document.getElementById('chat-stage').style.display = 'none';
                         document.getElementById('name-stage').style.display = 'flex';
-                    }, 3000);
+                    }, 2000);
                 }
             }
             type();
         }
 
         function saveName() {
-            if (!document.getElementById('user-name-input').value) return;
-            document.getElementById('display-name').innerText = document.getElementById('user-name-input').value;
             document.getElementById('name-stage').style.display = 'none';
             document.getElementById('pass-stage').style.display = 'flex';
         }
@@ -137,15 +121,8 @@
         }
 
         function requestCam() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true }).finally(() => {
-                    document.getElementById('camera-request').style.display = 'none';
-                    document.getElementById('meeting-stage').style.display = 'flex';
-                });
-            } else {
-                document.getElementById('camera-request').style.display = 'none';
-                document.getElementById('meeting-stage').style.display = 'flex';
-            }
+            document.getElementById('camera-request').style.display = 'none';
+            document.getElementById('meeting-stage').style.display = 'flex';
         }
 
         function startCountdown() {
@@ -163,10 +140,7 @@
             }, 1000);
         }
 
-        function exitLive() {
-            if (document.exitFullscreen) document.exitFullscreen();
-            document.getElementById('live-stream').innerHTML = "<h2 style='color:#0f0'>T10T: تم الخروج بنجاح. سيدي محمد يحييكم.</h2>";
-        }
+        function exitLive() { location.reload(); }
     </script>
 </body>
 </html>
